@@ -143,4 +143,11 @@ public class RentalResource {
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, rentalDTO.getId().toString()))
             .body(result);
     }
+
+    @PutMapping("/returnbooks/by/{userid}/books/{books}")
+    public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
+        rentalService.returnBooks(userid,books);
+        log.debug("returned books");
+        return ResponseEntity.ok().build();
+    }
 }

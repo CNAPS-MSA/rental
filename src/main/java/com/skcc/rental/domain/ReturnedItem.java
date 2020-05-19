@@ -34,6 +34,19 @@ public class ReturnedItem implements Serializable {
     @JsonIgnoreProperties("returnedItems")
     private Rental rental;
 
+
+    //생성 메소드
+
+    public static ReturnedItem createReturnedItem(Rental rental, Long bookId , LocalDate returnedDate){
+        ReturnedItem returnedItem = new ReturnedItem();
+        returnedItem.setRental(rental);
+        returnedItem.setBookId(bookId);
+        returnedItem.setReturnedDate(returnedDate);
+
+        return returnedItem;
+    }
+
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
