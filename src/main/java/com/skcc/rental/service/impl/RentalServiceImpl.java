@@ -136,6 +136,7 @@ public class RentalServiceImpl implements RentalService {
                 rental.getRentedItems().remove(rentedItem);
                 rentedItemRepository.delete(rentedItem);
                 ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rental, bookId , LocalDate.now());
+                rental.addReturnedItem(returnedItem);
                 returnedItemRepository.save(returnedItem);
 
             }
