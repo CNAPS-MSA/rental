@@ -1,0 +1,52 @@
+{
+    "name": "Rental",
+    "fields": [
+        {
+            "fieldName": "userId",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "rentalStatus",
+            "fieldType": "RentalStatus",
+            "fieldValues": "OK,RENTED,OVERDUE"
+        },
+        {
+            "fieldName": "lateFee",
+            "fieldType": "Long"
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "one-to-many",
+            "otherEntityName": "rentedItem",
+            "otherEntityRelationshipName": "rental",
+            "relationshipName": "rentedItem"
+        },
+        {
+            "relationshipType": "one-to-many",
+            "otherEntityName": "overdueItem",
+            "otherEntityRelationshipName": "rental",
+            "relationshipName": "overdueItem"
+        },
+        {
+            "relationshipType": "one-to-many",
+            "otherEntityName": "returnedItem",
+            "otherEntityRelationshipName": "rental",
+            "relationshipName": "returnedItem"
+        }
+    ],
+    "changelogDate": "20200518075200",
+    "entityTableName": "rental",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": false,
+    "fluentMethods": true,
+    "readOnly": false,
+    "embedded": false,
+    "clientRootFolder": "rental",
+    "applications": "*",
+    "microserviceName": "rental",
+    "searchEngine": false,
+    "databaseType": "sql"
+}

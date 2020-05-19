@@ -1,0 +1,34 @@
+{
+    "name": "OverdueItem",
+    "fields": [
+        {
+            "fieldName": "bookId",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "dueDate",
+            "fieldType": "LocalDate"
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "many-to-one",
+            "otherEntityName": "rental",
+            "otherEntityRelationshipName": "overdueItem",
+            "relationshipName": "rental",
+            "otherEntityField": "id"
+        }
+    ],
+    "changelogDate": "20200518075400",
+    "entityTableName": "overdue_item",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": false,
+    "fluentMethods": true,
+    "readOnly": false,
+    "embedded": false,
+    "clientRootFolder": "rental",
+    "applications": "*",
+    "microserviceName": "rental"
+}
