@@ -1,5 +1,10 @@
 package com.skcc.rental.service.impl;
 
+import com.skcc.rental.domain.RentedItem;
+import com.skcc.rental.domain.ReturnedItem;
+import com.skcc.rental.domain.enumeration.RentalStatus;
+import com.skcc.rental.repository.RentedItemRepository;
+import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.repository.RentalRepository;
@@ -13,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,10 +33,16 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalRepository rentalRepository;
 
+    private final RentedItemRepository rentedItemRepository;
+
+    private final ReturnedItemRepository returnedItemRepository;
+
     private final RentalMapper rentalMapper;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentalMapper rentalMapper) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository, RentalMapper rentalMapper) {
         this.rentalRepository = rentalRepository;
+        this.rentedItemRepository = rentedItemRepository;
+        this.returnedItemRepository = returnedItemRepository;
         this.rentalMapper = rentalMapper;
     }
 
@@ -111,5 +123,36 @@ public class RentalServiceImpl implements RentalService {
             log.debug(" 대여 완료 되었습니다.", rental);
             return rentalMapper.toDto(rental);
         }
+    }
+
+    @Override
+    public void returnBooks(Long userId, List<Long> bookIds) {
+        log.debug("Return books by ", userId, " Return Book List : ", bookIds);
+
+        if(rentalRepository.findByUserId(userId).isPresent()){
+            Rental rental = rentalRepository.findByUserId(userId).get();
+            for(Long bookId: bookIds){
+                RentedItem rentedItem = rentedItemRepository.findByBookId(bookId).get();
+                rental.getRentedItems().remove(rentedItem);
+                rentedItemRepository.delete(rentedItem);
+                ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rental, bookId , LocalDate.now());
+                rental.addReturnedItem(returnedItem);
+                returnedItemRepository.save(returnedItem);
+
+            }
+
+            if(rental.getRentedItems().size()==0 && rental.getRentalStatus()!= RentalStatus.OVERDUE){
+                rental.setRentalStatus(RentalStatus.OK);
+            }
+
+            rentalRepository.save(rental);
+
+            return ;
+
+        }else{
+            log.debug("대여 이력이 없습니다.");
+            return ;
+        }
+
     }
 }

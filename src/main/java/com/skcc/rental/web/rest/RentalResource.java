@@ -1,5 +1,6 @@
 package com.skcc.rental.web.rest;
 
+import com.skcc.rental.service.KafkaProducerService;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.service.dto.RentalDTO;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,9 +38,12 @@ public class RentalResource {
     private String applicationName;
 
     private final RentalService rentalService;
+    private final KafkaProducerService kafkaProducerService;
 
-    public RentalResource(RentalService rentalService) {
+
+    public RentalResource(RentalService rentalService, KafkaProducerService kafkaProducerService) {
         this.rentalService = rentalService;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     /**
@@ -139,8 +142,21 @@ public class RentalResource {
             throw new BadRequestAlertException("Invalid ", ENTITY_NAME, "null");
         }
         RentalDTO result = rentalService.save(rentalDTO);
+        log.debug("SEND BOOKIDS for Book: {}", books);
+        kafkaProducerService.updateBookStatus(books, "UNAVAILABLE");
+
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, rentalDTO.getId().toString()))
             .body(result);
+    }
+
+    @PutMapping("/returnbooks/by/{userid}/books/{books}")
+    public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
+        rentalService.returnBooks(userid,books);
+        log.debug("returned books");
+        log.debug("SEND BOOKIDS for Book: {}", books);
+        kafkaProducerService.updateBookStatus(books, "AVAILABLE");
+
+        return ResponseEntity.ok().build();
     }
 }

@@ -44,6 +44,23 @@ public interface RentalService {
      */
     void delete(Long id);
 
+
+    /****
+     *
+     * Business Logic
+     *
+     * 책 대여하기
+     *
+     * ****/
     RentalDTO rentBooks(Long userId, List<Long> bookIds);
 
+    /****
+     *
+     * Business Logic
+     *
+     * 책 반납하기
+     *
+     * ****/
+
+    void returnBooks(Long userId, List<Long> bookIds);
 }

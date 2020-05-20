@@ -227,6 +227,8 @@ public class Rental implements Serializable {
         }
     }
 
+
+    //대여 가능 여부 체크 //
     public boolean checkRentalAvailable(Integer newBookCnt){
         if(this.rentalStatus!=RentalStatus.OVERDUE){
 
@@ -241,4 +243,7 @@ public class Rental implements Serializable {
             return false;
         }
     }
+
+    //반납 메소드//
+
 }
