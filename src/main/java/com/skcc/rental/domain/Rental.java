@@ -244,6 +244,14 @@ public class Rental implements Serializable {
         }
     }
 
-    //반납 메소드//
 
+    public Rental returnbook(Long bookId, RentedItem rentedItem) {
+
+        this.removeRentedItem(rentedItem);
+        ReturnedItem returnedItem = ReturnedItem.createReturnedItem(this, bookId , LocalDate.now());
+        this.addReturnedItem(returnedItem);
+
+        return this;
+
+    }
 }

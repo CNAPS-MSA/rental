@@ -1,5 +1,6 @@
 package com.skcc.rental.service.impl;
 
+import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.domain.enumeration.RentalStatus;
@@ -37,13 +38,17 @@ public class RentalServiceImpl implements RentalService {
 
     private final ReturnedItemRepository returnedItemRepository;
 
+    private final RentalKafkaProducer rentalKafkaProducer;
+
     private final RentalMapper rentalMapper;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository, RentalMapper rentalMapper) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository, RentalMapper rentalMapper,
+                             RentalKafkaProducer rentalKafkaProducer) {
         this.rentalRepository = rentalRepository;
         this.rentedItemRepository = rentedItemRepository;
         this.returnedItemRepository = returnedItemRepository;
         this.rentalMapper = rentalMapper;
+        this.rentalKafkaProducer = rentalKafkaProducer;
     }
 
     /**
@@ -100,29 +105,35 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public RentalDTO rentBooks(Long userId, List<Long> bookIds) {
+    public void rentBooks(Long userId, List<Long> bookIds) {
         log.debug("Rent Books by : ", userId, " Book List : ", bookIds);
 
         if(rentalRepository.findByUserId(userId).isPresent()){ //기존에 대여 내역이 있는 경우
             Rental rental = rentalRepository.findByUserId(userId).get();
             rental = rental.rentBooks(bookIds);
-            if(rental!=null)
+            if(rental==null)
             {
-                log.debug(" 대여 완료 되었습니다.", rental);
-                return rentalMapper.toDto(rental);
-            }else{
                 log.debug("대여 불가능 상태입니다.");
-                return null;
+                return ;
             }
+
+            rentalRepository.save(rental);
+            rentalKafkaProducer.updateBookStatus(bookIds, "UNAVAILABLE");
+
+            log.debug(" 대여 완료 되었습니다.", rental);
         }else{ // 첫 대여인 경우
             log.debug("첫 도서 대여입니다.");
             Rental rental = Rental.createRental(userId);
             rentalRepository.save(rental);
             rental=rental.rentBooks(bookIds);
 
+            rentalRepository.save(rental);
             log.debug(" 대여 완료 되었습니다.", rental);
-            return rentalMapper.toDto(rental);
+
+            rentalKafkaProducer.updateBookStatus(bookIds, "UNAVAILABLE");
         }
+
+
     }
 
     @Override
@@ -133,19 +144,17 @@ public class RentalServiceImpl implements RentalService {
             Rental rental = rentalRepository.findByUserId(userId).get();
             for(Long bookId: bookIds){
                 RentedItem rentedItem = rentedItemRepository.findByBookId(bookId).get();
-                rental.getRentedItems().remove(rentedItem);
-                rentedItemRepository.delete(rentedItem);
-                ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rental, bookId , LocalDate.now());
-                rental.addReturnedItem(returnedItem);
-                returnedItemRepository.save(returnedItem);
+                if(rentedItem.getRental().getUserId()==userId) {  // 대여했던 책의 유저 정보와 일치하면 반납 진행
+                    rental = rental.returnbook(bookId, rentedItem);
+                    rentalRepository.save(rental);
 
+                    rentalKafkaProducer.updateBookStatus(bookIds, "AVAILABLE");
+                }else{
+                    log.debug("도서정보와 사용자 정보가 일치하지 않습니다.");
+                    return;
+                }
             }
 
-            if(rental.getRentedItems().size()==0 && rental.getRentalStatus()!= RentalStatus.OVERDUE){
-                rental.setRentalStatus(RentalStatus.OK);
-            }
-
-            rentalRepository.save(rental);
 
             return ;
 

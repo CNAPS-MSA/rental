@@ -1,6 +1,6 @@
 package com.skcc.rental.web.rest;
 
-import com.skcc.rental.service.KafkaProducerService;
+import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.service.dto.RentalDTO;
@@ -38,12 +38,9 @@ public class RentalResource {
     private String applicationName;
 
     private final RentalService rentalService;
-    private final KafkaProducerService kafkaProducerService;
 
-
-    public RentalResource(RentalService rentalService, KafkaProducerService kafkaProducerService) {
+    public RentalResource(RentalService rentalService) {
         this.rentalService = rentalService;
-        this.kafkaProducerService = kafkaProducerService;
     }
 
     /**
@@ -134,20 +131,16 @@ public class RentalResource {
     *
     */
     @PostMapping("/rentbooks/by/{userid}/books/{books}")
-    public ResponseEntity<RentalDTO> rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
+    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
         log.debug("rent book request");
-        RentalDTO rentalDTO = rentalService.rentBooks(userid,books);
+        rentalService.rentBooks(userid,books);
 
-        if(rentalDTO==null){
-            throw new BadRequestAlertException("Invalid ", ENTITY_NAME, "null");
-        }
-        RentalDTO result = rentalService.save(rentalDTO);
+//        if(rentalDTO==null){
+//            throw new BadRequestAlertException("Invalid ", ENTITY_NAME, "null");
+//        }
         log.debug("SEND BOOKIDS for Book: {}", books);
-        kafkaProducerService.updateBookStatus(books, "UNAVAILABLE");
 
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, rentalDTO.getId().toString()))
-            .body(result);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/returnbooks/by/{userid}/books/{books}")
@@ -155,7 +148,6 @@ public class RentalResource {
         rentalService.returnBooks(userid,books);
         log.debug("returned books");
         log.debug("SEND BOOKIDS for Book: {}", books);
-        kafkaProducerService.updateBookStatus(books, "AVAILABLE");
 
         return ResponseEntity.ok().build();
     }
