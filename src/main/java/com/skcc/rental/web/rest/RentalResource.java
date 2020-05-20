@@ -143,7 +143,7 @@ public class RentalResource {
         }
         RentalDTO result = rentalService.save(rentalDTO);
         log.debug("SEND BOOKIDS for Book: {}", books);
-        kafkaProducerService.updateBookStatus(books);
+        kafkaProducerService.updateBookStatus(books, "UNAVAILABLE");
 
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, rentalDTO.getId().toString()))
@@ -155,7 +155,7 @@ public class RentalResource {
         rentalService.returnBooks(userid,books);
         log.debug("returned books");
         log.debug("SEND BOOKIDS for Book: {}", books);
-        kafkaProducerService.updateBookStatus(books);
+        kafkaProducerService.updateBookStatus(books, "AVAILABLE");
 
         return ResponseEntity.ok().build();
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
 import com.skcc.rental.domain.RentedItem;
+import com.skcc.rental.service.dto.RentalBookDTO;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class KafkaProducerService {
 
     private final Logger log = LoggerFactory.getLogger(KafkaProducerService.class);
 
-    private static final String TOPIC = "topic_rental";
+    private static final String TOPIC = "topic_kafka";
 
     private final KafkaProperties kafkaProperties;
 
@@ -40,10 +41,11 @@ public class KafkaProducerService {
         log.info("Kafka producer initialized");
     }
 
-    public void updateBookStatus(List<Long> bookIds){
+    public void updateBookStatus(List<Long> bookIds, String bookStatus){
         try {
             for(Long bookId : bookIds) {
-                String message = objectMapper.writeValueAsString(bookId);
+                RentalBookDTO rentalBookDTO = new RentalBookDTO(bookId, bookStatus);
+                String message = objectMapper.writeValueAsString(rentalBookDTO);
                 ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, message);
                 producer.send(record);
             }
