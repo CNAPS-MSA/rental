@@ -1,10 +1,9 @@
-package com.skcc.rental.service;
+package com.skcc.rental.adaptor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
-import com.skcc.rental.domain.RentedItem;
-import com.skcc.rental.service.dto.RentalBookDTO;
+import com.skcc.rental.domain.UpdateBookEvent;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -16,20 +15,20 @@ import javax.annotation.PreDestroy;
 import java.util.List;
 
 @Service
-public class KafkaProducerService {
+public class RentalKafkaProducer {
 
-    private final Logger log = LoggerFactory.getLogger(KafkaProducerService.class);
+    private final Logger log = LoggerFactory.getLogger(RentalKafkaProducer.class);
 
     private static final String TOPIC = "topic_kafka";
 
     private final KafkaProperties kafkaProperties;
 
-    private final static Logger logger = LoggerFactory.getLogger(KafkaProducerService.class);
+    private final static Logger logger = LoggerFactory.getLogger(RentalKafkaProducer.class);
     private KafkaProducer<String, String> producer;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public KafkaProducerService(KafkaProperties kafkaProperties) {
+    public RentalKafkaProducer(KafkaProperties kafkaProperties) {
         this.kafkaProperties = kafkaProperties;
     }
 
@@ -44,8 +43,8 @@ public class KafkaProducerService {
     public void updateBookStatus(List<Long> bookIds, String bookStatus){
         try {
             for(Long bookId : bookIds) {
-                RentalBookDTO rentalBookDTO = new RentalBookDTO(bookId, bookStatus);
-                String message = objectMapper.writeValueAsString(rentalBookDTO);
+                UpdateBookEvent updateBookEvent = new UpdateBookEvent(bookId, bookStatus);
+                String message = objectMapper.writeValueAsString(updateBookEvent);
                 ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, message);
                 producer.send(record);
             }

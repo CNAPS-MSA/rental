@@ -1,11 +1,11 @@
-package com.skcc.rental.service.dto;
+package com.skcc.rental.domain;
 
-public class RentalBookDTO {
+public class UpdateBookEvent {
 
     private Long bookId;
     private String bookStatus;
 
-    public RentalBookDTO(Long bookId, String bookStatus){
+    public UpdateBookEvent(Long bookId, String bookStatus){
         this.bookId = bookId;
         this.bookStatus = bookStatus;
 

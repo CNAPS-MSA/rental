@@ -3,7 +3,7 @@ package com.skcc.rental.web.rest;
 import com.skcc.rental.RentalApp;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.repository.RentalRepository;
-import com.skcc.rental.service.KafkaProducerService;
+import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.service.dto.RentalDTO;
 import com.skcc.rental.service.mapper.RentalMapper;
@@ -60,7 +60,7 @@ public class RentalResourceIT {
     private MockMvc restRentalMockMvc;
 
     @Autowired
-    private KafkaProducerService kafkaProducerService;
+    private RentalKafkaProducer rentalKafkaProducer;
 
     private Rental rental;
 

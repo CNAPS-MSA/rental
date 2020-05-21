@@ -52,7 +52,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    RentalDTO rentBooks(Long userId, List<Long> bookIds);
+    void rentBooks(Long userId, List<Long> bookIds);
 
     /****
      *
