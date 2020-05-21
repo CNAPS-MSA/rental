@@ -37,10 +37,9 @@ public class RentedItem implements Serializable {
     @JsonIgnoreProperties("rentedItems")
     private Rental rental;
 
-    public static RentedItem createRentedItem(Rental rental, Long bookId, LocalDate rentedDate) {
+    public static RentedItem createRentedItem(Long bookId, LocalDate rentedDate) {
         RentedItem rentedItem = new RentedItem();
         rentedItem.setBookId(bookId);
-        rentedItem.setRental(rental);
         rentedItem.setRentedDate(rentedDate);
         rentedItem.setDueDate(rentedDate.plusWeeks(2)); //총 대여기간 2주 설정
         return rentedItem;

@@ -103,9 +103,13 @@ public class RentalServiceImpl implements RentalService {
     public RentalDTO rentBooks(Long userId, List<Long> bookIds) {
         log.debug("Rent Books by : ", userId, " Book List : ", bookIds);
 
+        //대여도서 객체 만들고
+        //원래는 book서비스 호출해서 book객체정보 가져와서 대여도서 생성
+        RentedItem rentedItem = ReturnedItem.createReturnedItem(bookIds,LocalDate.now());
+
         if(rentalRepository.findByUserId(userId).isPresent()){ //기존에 대여 내역이 있는 경우
             Rental rental = rentalRepository.findByUserId(userId).get();
-            rental = rental.rentBooks(bookIds);
+            rental = rental.rentBooks(rentedItem);
             if(rental!=null)
             {
                 log.debug(" 대여 완료 되었습니다.", rental);
@@ -116,9 +120,11 @@ public class RentalServiceImpl implements RentalService {
             }
         }else{ // 첫 대여인 경우
             log.debug("첫 도서 대여입니다.");
-            Rental rental = Rental.createRental(userId);
+
+            //렌탈 생성
+            Rental rental = Rental.createRental(userId,rentedItem);
+
             rentalRepository.save(rental);
-            rental=rental.rentBooks(bookIds);
 
             log.debug(" 대여 완료 되었습니다.", rental);
             return rentalMapper.toDto(rental);

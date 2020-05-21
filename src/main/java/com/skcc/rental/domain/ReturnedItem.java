@@ -37,9 +37,8 @@ public class ReturnedItem implements Serializable {
 
     //생성 메소드
 
-    public static ReturnedItem createReturnedItem(Rental rental, Long bookId , LocalDate returnedDate){
+    public static ReturnedItem createReturnedItem(Long bookId , LocalDate returnedDate){
         ReturnedItem returnedItem = new ReturnedItem();
-        returnedItem.setRental(rental);
         returnedItem.setBookId(bookId);
         returnedItem.setReturnedDate(returnedDate);
 
