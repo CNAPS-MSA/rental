@@ -103,62 +103,57 @@ public class RentalServiceImpl implements RentalService {
     public RentalDTO rentBooks(Long userId, List<Long> bookIds) {
         log.debug("Rent Books by : ", userId, " Book List : ", bookIds);
 
-        //대여도서 객체 만들고
-        //원래는 book서비스 호출해서 book객체정보 가져와서 대여도서 생성
-        RentedItem rentedItem = ReturnedItem.createReturnedItem(bookIds,LocalDate.now());
+        Rental rental = new Rental();
 
         if(rentalRepository.findByUserId(userId).isPresent()){ //기존에 대여 내역이 있는 경우
-            Rental rental = rentalRepository.findByUserId(userId).get();
-            rental = rental.rentBooks(rentedItem);
-            if(rental!=null)
-            {
-                log.debug(" 대여 완료 되었습니다.", rental);
-                return rentalMapper.toDto(rental);
-            }else{
-                log.debug("대여 불가능 상태입니다.");
-                return null;
+            //도서 카드 가져와서
+             rental = rentalRepository.findByUserId(userId).get();
+            //기존도서카드에다 새로운 도서 추가
+            for (Long bookId:bookIds) {
+                //대여도서 객체 만들고
+                //원래는 book서비스 호출해서 book객체정보 가져와서 대여도서 생성햐야 함. 이 부분 리소스로 뺴기로 함.
+                RentedItem rentedItem = RentedItem.createRentedItem(bookId, LocalDate.now());
+                //기존의 도서카드에다가 대여도서 추가
+                rental = rental.rentBooks(rentedItem);
             }
-        }else{ // 첫 대여인 경우
+        }else{
+            // 도서 카드가 없는 경우
             log.debug("첫 도서 대여입니다.");
+            for (Long bookId:bookIds) {
+                RentedItem rentedItem = RentedItem.createRentedItem(bookId, LocalDate.now());
+                //대여도서 같이 보내서 도서카드 새로 생성
+                rental = Rental.createRental(userId,rentedItem);
+            }
+         }
 
-            //렌탈 생성
-            Rental rental = Rental.createRental(userId,rentedItem);
+        //도서카드 저장
+        rentalRepository.save(rental);
 
-            rentalRepository.save(rental);
-
+        if(rental!=null)
+        {
             log.debug(" 대여 완료 되었습니다.", rental);
-            return rentalMapper.toDto(rental);
+        }else{
+            log.debug("대여 불가능 상태입니다.");
+            return null;
         }
+        return rentalMapper.toDto(rental);
     }
 
     @Override
     public void returnBooks(Long userId, List<Long> bookIds) {
         log.debug("Return books by ", userId, " Return Book List : ", bookIds);
 
+        Rental rental = new Rental();
         if(rentalRepository.findByUserId(userId).isPresent()){
-            Rental rental = rentalRepository.findByUserId(userId).get();
+            rental = rentalRepository.findByUserId(userId).get();
             for(Long bookId: bookIds){
-                RentedItem rentedItem = rentedItemRepository.findByBookId(bookId).get();
-                rental.getRentedItems().remove(rentedItem);
-                rentedItemRepository.delete(rentedItem);
-                ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rental, bookId , LocalDate.now());
-                rental.addReturnedItem(returnedItem);
-                returnedItemRepository.save(returnedItem);
-
+                RentedItem rentedItem = RentedItem.createRentedItem(bookId, LocalDate.now());
+                rental.returnBooks(rentedItem);
             }
-
-            if(rental.getRentedItems().size()==0 && rental.getRentalStatus()!= RentalStatus.OVERDUE){
-                rental.setRentalStatus(RentalStatus.OK);
-            }
-
-            rentalRepository.save(rental);
-
-            return ;
-
         }else{
             log.debug("대여 이력이 없습니다.");
-            return ;
         }
+        rentalRepository.save(rental);
 
     }
 }

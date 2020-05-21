@@ -38,8 +38,8 @@ public class RentalResourceIT {
     private static final Long DEFAULT_USER_ID = 1L;
     private static final Long UPDATED_USER_ID = 2L;
 
-    private static final RentalStatus DEFAULT_RENTAL_STATUS = RentalStatus.OK;
-    private static final RentalStatus UPDATED_RENTAL_STATUS = RentalStatus.RENTED;
+    private static final RentalStatus DEFAULT_RENTAL_STATUS = RentalStatus.RENTPOSSIBE;
+    private static final RentalStatus UPDATED_RENTAL_STATUS = RentalStatus.RENTIMPOSSIBLE;
 
     private static final Long DEFAULT_LATE_FEE = 1L;
     private static final Long UPDATED_LATE_FEE = 2L;
