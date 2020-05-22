@@ -37,6 +37,17 @@ public class OverdueItem implements Serializable {
     @JsonIgnoreProperties("overdueItems")
     private Rental rental;
 
+    //생성 메소드
+
+    public static OverdueItem createOverdueItem(Long bookId, String bookTitle, LocalDate dueDate){
+        OverdueItem overdueItem = new OverdueItem();
+        overdueItem.setBookId(bookId);
+        overdueItem.setBookTitle(bookTitle);
+        overdueItem.setDueDate(dueDate);
+
+        return overdueItem;
+    }
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;

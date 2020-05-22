@@ -7,8 +7,6 @@ import javax.persistence.*;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Objects;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -200,11 +198,10 @@ public class Rental implements Serializable {
             "}";
     }
 
-    //최초대여하//
     /**
-     *
+     * 대여 카드 생성
      * @param userId
-     * @param rentedItems
+     * @param
      * @return
      */
     public static Rental createRental(Long userId){
@@ -214,9 +211,6 @@ public class Rental implements Serializable {
         rental.setLateFee((long)0);
         return rental;
     }
-
-
-
 
     //대여하기//
     public Rental rentBooks(RentedItem rentedItems){
@@ -231,15 +225,29 @@ public class Rental implements Serializable {
         }
     }
 
-    //반납 메소드//
+    //반납//
     public Rental returnBooks(RentedItem rentedItem)
     {
         this.removeRentedItem(rentedItem);
         //대여도서 정보로 반납도서 만들기
-        ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rentedItem.getBookId(),rentedItem.getBookTitle(),LocalDate.now());
         //반납목록에 넣기
-        this.addReturnedItem(returnedItem);
+        this.addReturnedItem(ReturnedItem.createReturnedItem(rentedItem.getBookId(),rentedItem.getBookTitle(),LocalDate.now()));
+        return this;
+    }
 
+    //연체//
+    public Rental overdueBooks(RentedItem rentedItem)
+    {
+        this.removeRentedItem(rentedItem);
+        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(),rentedItem.getBookTitle(),LocalDate.now()));
+        return this;
+    }
+
+    //연체해제//
+    public Rental releaseOverdue(OverdueItem overdueItem)
+    {
+        this.removeOverdueItem(overdueItem);
+        this.addReturnedItem(ReturnedItem.createReturnedItem(overdueItem.getBookId(),overdueItem.getBookTitle(),LocalDate.now()));
         return this;
     }
 

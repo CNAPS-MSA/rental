@@ -104,29 +104,19 @@ public class RentalServiceImpl {
         Rental rental = new Rental();
 
         if(rentalRepository.findByUserId(userId).isPresent()) { //기존에 대여 내역이 있는 경우
-            //도서 카드 가져와서
-            System.out.println("second");
             rental = rentalRepository.findByUserId(userId).get();
-        }else
-        {
+        }else{
             //도서카드 새로 생성
             log.debug("첫 도서 대여입니다.");
-            System.out.println("first");
             rental = Rental.createRental(userId);
         }
 
         for (Long bookId:bookIds) {
             //대여도서 객체 만들고
-            rental = rentBook(rental, bookId);
+            rental = makeRentedItemRentBook(rental, bookId);
         }
         //도서카드 저장
         Rental saveRental = rentalRepository.save(rental);
-
-        if(saveRental==null)
-        {
-            log.debug("대여 불가능 상태입니다.");
-            return null;
-        }
 
         log.debug(" 대여 완료 되었습니다.", rental);
         return saveRental;
@@ -140,19 +130,12 @@ public class RentalServiceImpl {
         Rental rental = new Rental();
         rental = rentalRepository.findByUserId(userId).get();
 
-        System.out.println(rental.toString());
-        if(rental == null) {
-            log.debug("대여 이력이 없습니다.");
-            return null;
-        }
-
-        RentedItem rentedItem1 = rental.getRentedItems().stream().filter(rentedItem -> rentedItem.getBookId().equals(bookId)).findFirst().get();
-        //System.out.println(rentedItem1.toString());
-        rental.returnBooks(rentedItem1);
+        RentedItem returnBook = rental.getRentedItems().stream().filter(rentedItem -> rentedItem.getBookId().equals(bookId)).findFirst().get();
+        rental.returnBooks(returnBook);
         return rentalRepository.save(rental);
     }
 
-    public Rental rentBook(Rental rental, Long bookId) {
+    public Rental makeRentedItemRentBook(Rental rental, Long bookId) {
         //원래는 book서비스 호출해서 book객체정보 가져와서 대여도서 생성햐야 함. 이 부분 리소스로 뺴기로 함.
         RentedItem rentedItem = RentedItem.createRentedItem(bookId,"어린왕자", LocalDate.now());
         //도서카드에다가 대여도서 추가
