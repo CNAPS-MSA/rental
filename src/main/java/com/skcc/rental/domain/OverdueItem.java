@@ -27,6 +27,9 @@ public class OverdueItem implements Serializable {
     @Column(name = "book_id")
     private Long bookId;
 
+    @Column(name = "book_title")
+    private String bookTitle;
+
     @Column(name = "due_date")
     private LocalDate dueDate;
 
@@ -106,5 +109,13 @@ public class OverdueItem implements Serializable {
             ", bookId=" + getBookId() +
             ", dueDate='" + getDueDate() + "'" +
             "}";
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 }

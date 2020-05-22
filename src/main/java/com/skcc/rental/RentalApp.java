@@ -2,12 +2,15 @@ package com.skcc.rental;
 
 import com.skcc.rental.config.ApplicationProperties;
 
+import com.skcc.rental.service.dto.RentalDTO;
+import com.skcc.rental.service.impl.RentalServiceImpl;
 import io.github.jhipster.config.DefaultProfileUtil;
 import io.github.jhipster.config.JHipsterConstants;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
@@ -18,8 +21,10 @@ import org.springframework.core.env.Environment;
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 @SpringBootApplication
 @EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
@@ -33,6 +38,7 @@ public class RentalApp {
     public RentalApp(Environment env) {
         this.env = env;
     }
+
 
     /**
      * Initializes rental.
@@ -65,6 +71,8 @@ public class RentalApp {
         Environment env = app.run(args).getEnvironment();
         logApplicationStartup(env);
     }
+
+
 
     private static void logApplicationStartup(Environment env) {
         String protocol = "http";

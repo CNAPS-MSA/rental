@@ -207,57 +207,41 @@ public class Rental implements Serializable {
      * @param rentedItems
      * @return
      */
-    public static Rental createRental(Long userId,RentedItem... rentedItems){
-        //처음 대출할때 : 대출카드 생성하고
+    public static Rental createRental(Long userId){
         Rental rental = new Rental();
         rental.setUserId(userId);
-        //대여 가능하게 상태변경
         rental.setRentalStatus(RentalStatus.RENTPOSSIBE);
-        //대여목록에 넣기
-        for (RentedItem rentalItem:rentedItems) {
-            rental.addRentedItem(rentalItem);
-        }
-        //rental.setOverdueItems(new HashSet<>());
-        //rental.setReturnedItems(new HashSet<>());
         rental.setLateFee((long)0);
         return rental;
     }
 
-    //반납 메소드//
-    public Rental returnBooks(RentedItem... rentedItems)
-    {
-
-        for (RentedItem rentalItem:rentedItems) {
-            //대여목록에서 삭제하고
-            this.removeRentedItem(rentalItem);
-            //대여도서 정보로 반납도서 만들기
-            ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rentalItem.getBookId(),LocalDate.now());
-            //반납목록에 넣기
-            this.addReturnedItem(returnedItem);
-        }
-        return this;
-    }
 
 
-    //추가대여하기//
-    public Rental rentBooks(RentedItem... rentedItems){
 
-        //현재 대여목록 갯수와 대여할 도서 갯수 파악
-        Integer currentBookCnt = this.rentedItems.size()+rentedItems.length;
+    //대여하기//
+    public Rental rentBooks(RentedItem rentedItems){
+
+        Integer currentBookCnt = this.rentedItems.size();
         //5건 이상검토
         if(checkRentalAvailable(currentBookCnt)){
-            for (RentedItem rentalItem:rentedItems) {
-                //기존 대여목록에 추가하기
-                this.addRentedItem(rentalItem);
-            }
+            this.addRentedItem(rentedItems);
             return this;
-
         }else{
             return null;
         }
     }
 
+    //반납 메소드//
+    public Rental returnBooks(RentedItem rentedItem)
+    {
+        this.removeRentedItem(rentedItem);
+        //대여도서 정보로 반납도서 만들기
+        ReturnedItem returnedItem = ReturnedItem.createReturnedItem(rentedItem.getBookId(),rentedItem.getBookTitle(),LocalDate.now());
+        //반납목록에 넣기
+        this.addReturnedItem(returnedItem);
 
+        return this;
+    }
 
 
     //대여 가능 여부 체크 //

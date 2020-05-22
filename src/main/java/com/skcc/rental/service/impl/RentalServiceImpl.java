@@ -1,15 +1,13 @@
 package com.skcc.rental.service.impl;
 
 import com.skcc.rental.domain.RentedItem;
-import com.skcc.rental.domain.ReturnedItem;
-import com.skcc.rental.domain.enumeration.RentalStatus;
+
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.repository.RentalRepository;
-import com.skcc.rental.service.dto.RentalDTO;
-import com.skcc.rental.service.mapper.RentalMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +25,7 @@ import java.util.Optional;
  */
 @Service
 @Transactional
-public class RentalServiceImpl implements RentalService {
+public class RentalServiceImpl {
 
     private final Logger log = LoggerFactory.getLogger(RentalServiceImpl.class);
 
@@ -37,27 +35,25 @@ public class RentalServiceImpl implements RentalService {
 
     private final ReturnedItemRepository returnedItemRepository;
 
-    private final RentalMapper rentalMapper;
+    //private final RentalMapper rentalMapper;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository, RentalMapper rentalMapper) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository) {
         this.rentalRepository = rentalRepository;
         this.rentedItemRepository = rentedItemRepository;
         this.returnedItemRepository = returnedItemRepository;
-        this.rentalMapper = rentalMapper;
+        //this.rentalMapper = rentalMapper;
     }
+
 
     /**
      * Save a rental.
      *
-     * @param rentalDTO the entity to save.
+     * @param
      * @return the persisted entity.
      */
-    @Override
-    public RentalDTO save(RentalDTO rentalDTO) {
-        log.debug("Request to save Rental : {}", rentalDTO);
-        Rental rental = rentalMapper.toEntity(rentalDTO);
-        rental = rentalRepository.save(rental);
-        return rentalMapper.toDto(rental);
+
+    public Rental save(Rental rental) {
+        return rentalRepository.save(rental);
     }
 
     /**
@@ -66,12 +62,12 @@ public class RentalServiceImpl implements RentalService {
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    @Override
+
+
     @Transactional(readOnly = true)
-    public Page<RentalDTO> findAll(Pageable pageable) {
+    public Page<Rental> findAll(Pageable pageable) {
         log.debug("Request to get all Rentals");
-        return rentalRepository.findAll(pageable)
-            .map(rentalMapper::toDto);
+        return rentalRepository.findAll(pageable);
     }
 
     /**
@@ -80,12 +76,12 @@ public class RentalServiceImpl implements RentalService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    @Override
+
     @Transactional(readOnly = true)
-    public Optional<RentalDTO> findOne(Long id) {
+    public Optional<Rental> findOne(Long id) {
         log.debug("Request to get Rental : {}", id);
-        return rentalRepository.findById(id)
-            .map(rentalMapper::toDto);
+        return rentalRepository.findById(id);
+
     }
 
     /**
@@ -93,67 +89,76 @@ public class RentalServiceImpl implements RentalService {
      *
      * @param id the id of the entity.
      */
-    @Override
+
     public void delete(Long id) {
         log.debug("Request to delete Rental : {}", id);
         rentalRepository.deleteById(id);
     }
 
-    @Override
-    public RentalDTO rentBooks(Long userId, List<Long> bookIds) {
+
+    @Transactional
+    public Rental rentBooks(Long userId, List<Long> bookIds) {
         log.debug("Rent Books by : ", userId, " Book List : ", bookIds);
+        System.out.println("Rent Books by : " + userId + " Book List : "+ bookIds);
 
         Rental rental = new Rental();
 
-        if(rentalRepository.findByUserId(userId).isPresent()){ //기존에 대여 내역이 있는 경우
+        if(rentalRepository.findByUserId(userId).isPresent()) { //기존에 대여 내역이 있는 경우
             //도서 카드 가져와서
-             rental = rentalRepository.findByUserId(userId).get();
-            //기존도서카드에다 새로운 도서 추가
-            for (Long bookId:bookIds) {
-                //대여도서 객체 만들고
-                //원래는 book서비스 호출해서 book객체정보 가져와서 대여도서 생성햐야 함. 이 부분 리소스로 뺴기로 함.
-                RentedItem rentedItem = RentedItem.createRentedItem(bookId, LocalDate.now());
-                //기존의 도서카드에다가 대여도서 추가
-                rental = rental.rentBooks(rentedItem);
-            }
-        }else{
-            // 도서 카드가 없는 경우
-            log.debug("첫 도서 대여입니다.");
-            for (Long bookId:bookIds) {
-                RentedItem rentedItem = RentedItem.createRentedItem(bookId, LocalDate.now());
-                //대여도서 같이 보내서 도서카드 새로 생성
-                rental = Rental.createRental(userId,rentedItem);
-            }
-         }
-
-        //도서카드 저장
-        rentalRepository.save(rental);
-
-        if(rental!=null)
+            System.out.println("second");
+            rental = rentalRepository.findByUserId(userId).get();
+        }else
         {
-            log.debug(" 대여 완료 되었습니다.", rental);
-        }else{
+            //도서카드 새로 생성
+            log.debug("첫 도서 대여입니다.");
+            System.out.println("first");
+            rental = Rental.createRental(userId);
+        }
+
+        for (Long bookId:bookIds) {
+            //대여도서 객체 만들고
+            rental = rentBook(rental, bookId);
+        }
+        //도서카드 저장
+        Rental saveRental = rentalRepository.save(rental);
+
+        if(saveRental==null)
+        {
             log.debug("대여 불가능 상태입니다.");
             return null;
         }
-        return rentalMapper.toDto(rental);
+
+        log.debug(" 대여 완료 되었습니다.", rental);
+        return saveRental;
     }
 
-    @Override
-    public void returnBooks(Long userId, List<Long> bookIds) {
-        log.debug("Return books by ", userId, " Return Book List : ", bookIds);
+
+    @Transactional
+    public Rental returnBooks(Long userId,Long bookId) {
+        log.debug("Return books by ", userId, " Return Book List : ", bookId);
 
         Rental rental = new Rental();
-        if(rentalRepository.findByUserId(userId).isPresent()){
-            rental = rentalRepository.findByUserId(userId).get();
-            for(Long bookId: bookIds){
-                RentedItem rentedItem = RentedItem.createRentedItem(bookId, LocalDate.now());
-                rental.returnBooks(rentedItem);
-            }
-        }else{
-            log.debug("대여 이력이 없습니다.");
-        }
-        rentalRepository.save(rental);
+        rental = rentalRepository.findByUserId(userId).get();
 
+        System.out.println(rental.toString());
+        if(rental == null) {
+            log.debug("대여 이력이 없습니다.");
+            return null;
+        }
+
+        RentedItem rentedItem1 = rental.getRentedItems().stream().filter(rentedItem -> rentedItem.getBookId().equals(bookId)).findFirst().get();
+        //System.out.println(rentedItem1.toString());
+        rental.returnBooks(rentedItem1);
+        return rentalRepository.save(rental);
     }
+
+    public Rental rentBook(Rental rental, Long bookId) {
+        //원래는 book서비스 호출해서 book객체정보 가져와서 대여도서 생성햐야 함. 이 부분 리소스로 뺴기로 함.
+        RentedItem rentedItem = RentedItem.createRentedItem(bookId,"어린왕자", LocalDate.now());
+        //도서카드에다가 대여도서 추가
+        rental = rental.rentBooks(rentedItem);
+        return rental;
+    }
+
+
 }

@@ -27,6 +27,9 @@ public class RentedItem implements Serializable {
     @Column(name = "book_id")
     private Long bookId;
 
+    @Column(name = "book_title")
+    private String bookTitle;
+
     @Column(name = "rented_date")
     private LocalDate rentedDate;
 
@@ -37,9 +40,12 @@ public class RentedItem implements Serializable {
     @JsonIgnoreProperties("rentedItems")
     private Rental rental;
 
-    public static RentedItem createRentedItem(Long bookId, LocalDate rentedDate) {
+
+
+    public static RentedItem createRentedItem(Long bookId, String bookTitle, LocalDate rentedDate) {
         RentedItem rentedItem = new RentedItem();
         rentedItem.setBookId(bookId);
+        rentedItem.setBookTitle(bookTitle);
         rentedItem.setRentedDate(rentedDate);
         rentedItem.setDueDate(rentedDate.plusWeeks(2)); //총 대여기간 2주 설정
         return rentedItem;
@@ -131,5 +137,13 @@ public class RentedItem implements Serializable {
             ", rentedDate='" + getRentedDate() + "'" +
             ", dueDate='" + getDueDate() + "'" +
             "}";
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 }

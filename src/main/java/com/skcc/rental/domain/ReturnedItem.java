@@ -27,6 +27,10 @@ public class ReturnedItem implements Serializable {
     @Column(name = "book_id")
     private Long bookId;
 
+    @Column(name = "book_title")
+    private String bookTitle;
+
+
     @Column(name = "returned_date")
     private LocalDate returnedDate;
 
@@ -37,9 +41,10 @@ public class ReturnedItem implements Serializable {
 
     //생성 메소드
 
-    public static ReturnedItem createReturnedItem(Long bookId , LocalDate returnedDate){
+    public static ReturnedItem createReturnedItem(Long bookId, String bookTitle, LocalDate returnedDate){
         ReturnedItem returnedItem = new ReturnedItem();
         returnedItem.setBookId(bookId);
+        returnedItem.setBookTitle(bookTitle);
         returnedItem.setReturnedDate(returnedDate);
 
         return returnedItem;
@@ -118,5 +123,13 @@ public class ReturnedItem implements Serializable {
             ", bookId=" + getBookId() +
             ", returnedDate='" + getReturnedDate() + "'" +
             "}";
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 }
