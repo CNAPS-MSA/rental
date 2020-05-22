@@ -1,5 +1,6 @@
 package com.skcc.rental.service.impl;
 
+import com.skcc.rental.RentalApp;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentalRepository;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
