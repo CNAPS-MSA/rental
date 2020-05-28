@@ -1,7 +1,8 @@
 package com.skcc.rental.service;
 
-import com.skcc.rental.service.dto.RentalDTO;
+import com.skcc.rental.domain.Rental;
 
+import com.skcc.rental.web.rest.dto.BookInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,7 +20,7 @@ public interface RentalService {
      * @param rentalDTO the entity to save.
      * @return the persisted entity.
      */
-    RentalDTO save(RentalDTO rentalDTO);
+    Rental save(Rental rentalDTO);
 
     /**
      * Get all the rentals.
@@ -27,7 +28,7 @@ public interface RentalService {
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<RentalDTO> findAll(Pageable pageable);
+    Page<Rental> findAll(Pageable pageable);
 
     /**
      * Get the "id" rental.
@@ -35,7 +36,7 @@ public interface RentalService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<RentalDTO> findOne(Long id);
+    Optional<Rental> findOne(Long id);
 
     /**
      * Delete the "id" rental.
@@ -52,7 +53,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    void rentBooks(Long userId, List<Long> bookIds);
+    Rental rentBooks(Long userId, List<BookInfo> books);
 
     /****
      *
@@ -62,5 +63,7 @@ public interface RentalService {
      *
      * ****/
 
-    void returnBooks(Long userId, List<Long> bookIds);
+    Rental returnBooks(Long userId, List<Long> bookIds);
+
+    void updateBookStatus(List<Long> bookIds, String bookStatus);
 }

@@ -1,6 +1,7 @@
 package com.skcc.rental.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import net.bytebuddy.asm.Advice;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -30,22 +31,20 @@ public class ReturnedItem implements Serializable {
     @Column(name = "returned_date")
     private LocalDate returnedDate;
 
+    @Column(name = "book_title")
+    private String bookTitle;
+
     @ManyToOne
     @JsonIgnoreProperties("returnedItems")
     private Rental rental;
 
-
-    //생성 메소드
-
-    public static ReturnedItem createReturnedItem(Rental rental, Long bookId , LocalDate returnedDate){
+    public static ReturnedItem createReturnedItem(Long bookId, String bookTitle, LocalDate now) {
         ReturnedItem returnedItem = new ReturnedItem();
-        returnedItem.setRental(rental);
         returnedItem.setBookId(bookId);
-        returnedItem.setReturnedDate(returnedDate);
-
+        returnedItem.setBookTitle(bookTitle);
+        returnedItem.setReturnedDate(now);
         return returnedItem;
     }
-
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -80,6 +79,19 @@ public class ReturnedItem implements Serializable {
 
     public void setReturnedDate(LocalDate returnedDate) {
         this.returnedDate = returnedDate;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public ReturnedItem bookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
+        return this;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 
     public Rental getRental() {
@@ -118,6 +130,7 @@ public class ReturnedItem implements Serializable {
             "id=" + getId() +
             ", bookId=" + getBookId() +
             ", returnedDate='" + getReturnedDate() + "'" +
+            ", bookTitle='" + getBookTitle() + "'" +
             "}";
     }
 }

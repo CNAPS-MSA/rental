@@ -3,8 +3,8 @@ package com.skcc.rental.service.impl;
 import com.skcc.rental.service.ReturnedItemService;
 import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.repository.ReturnedItemRepository;
-import com.skcc.rental.service.dto.ReturnedItemDTO;
-import com.skcc.rental.service.mapper.ReturnedItemMapper;
+import com.skcc.rental.web.rest.dto.ReturnedItemDTO;
+import com.skcc.rental.web.rest.mapper.ReturnedItemMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

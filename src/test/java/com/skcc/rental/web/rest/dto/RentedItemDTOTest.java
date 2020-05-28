@@ -1,5 +1,6 @@
-package com.skcc.rental.service.dto;
+package com.skcc.rental.web.rest.dto;
 
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import com.skcc.rental.web.rest.TestUtil;

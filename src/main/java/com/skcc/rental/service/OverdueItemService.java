@@ -1,6 +1,6 @@
 package com.skcc.rental.service;
 
-import com.skcc.rental.service.dto.OverdueItemDTO;
+import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -3,8 +3,8 @@ package com.skcc.rental.service.impl;
 import com.skcc.rental.service.OverdueItemService;
 import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.repository.OverdueItemRepository;
-import com.skcc.rental.service.dto.OverdueItemDTO;
-import com.skcc.rental.service.mapper.OverdueItemMapper;
+import com.skcc.rental.web.rest.dto.OverdueItemDTO;
+import com.skcc.rental.web.rest.mapper.OverdueItemMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

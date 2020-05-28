@@ -33,17 +33,21 @@ public class RentedItem implements Serializable {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Column(name = "book_title")
+    private String bookTitle;
+
     @ManyToOne
     @JsonIgnoreProperties("rentedItems")
     private Rental rental;
 
-    public static RentedItem createRentedItem(Rental rental, Long bookId, LocalDate rentedDate) {
+    public static RentedItem createRentedItem(Long bookId, String bookTitle, LocalDate rentedDate) {
         RentedItem rentedItem = new RentedItem();
         rentedItem.setBookId(bookId);
-        rentedItem.setRental(rental);
+        rentedItem.setBookTitle(bookTitle);
         rentedItem.setRentedDate(rentedDate);
-        rentedItem.setDueDate(rentedDate.plusWeeks(2)); //총 대여기간 2주 설정
+        rentedItem.setDueDate(rentedDate.plusWeeks(2));
         return rentedItem;
+
     }
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
@@ -94,6 +98,19 @@ public class RentedItem implements Serializable {
         this.dueDate = dueDate;
     }
 
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public RentedItem bookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
+        return this;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
+    }
+
     public Rental getRental() {
         return rental;
     }
@@ -131,6 +148,7 @@ public class RentedItem implements Serializable {
             ", bookId=" + getBookId() +
             ", rentedDate='" + getRentedDate() + "'" +
             ", dueDate='" + getDueDate() + "'" +
+            ", bookTitle='" + getBookTitle() + "'" +
             "}";
     }
 }

@@ -5,8 +5,8 @@ import com.skcc.rental.domain.Rental;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.service.RentalService;
-import com.skcc.rental.service.dto.RentalDTO;
-import com.skcc.rental.service.mapper.RentalMapper;
+import com.skcc.rental.web.rest.dto.RentalDTO;
+import com.skcc.rental.web.rest.mapper.RentalMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +38,8 @@ public class RentalResourceIT {
     private static final Long DEFAULT_USER_ID = 1L;
     private static final Long UPDATED_USER_ID = 2L;
 
-    private static final RentalStatus DEFAULT_RENTAL_STATUS = RentalStatus.OK;
-    private static final RentalStatus UPDATED_RENTAL_STATUS = RentalStatus.RENTED;
+    private static final RentalStatus DEFAULT_RENTAL_STATUS = RentalStatus.RENT_AVAILABLE;
+    private static final RentalStatus UPDATED_RENTAL_STATUS = RentalStatus.RENT_UNAVAILABLE;
 
     private static final Long DEFAULT_LATE_FEE = 1L;
     private static final Long UPDATED_LATE_FEE = 2L;

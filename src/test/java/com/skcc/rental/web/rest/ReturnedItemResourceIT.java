@@ -4,8 +4,8 @@ import com.skcc.rental.RentalApp;
 import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.ReturnedItemService;
-import com.skcc.rental.service.dto.ReturnedItemDTO;
-import com.skcc.rental.service.mapper.ReturnedItemMapper;
+import com.skcc.rental.web.rest.dto.ReturnedItemDTO;
+import com.skcc.rental.web.rest.mapper.ReturnedItemMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +41,9 @@ public class ReturnedItemResourceIT {
     private static final LocalDate DEFAULT_RETURNED_DATE = LocalDate.ofEpochDay(0L);
     private static final LocalDate UPDATED_RETURNED_DATE = LocalDate.now(ZoneId.systemDefault());
 
+    private static final String DEFAULT_BOOK_TITLE = "AAAAAAAAAA";
+    private static final String UPDATED_BOOK_TITLE = "BBBBBBBBBB";
+
     @Autowired
     private ReturnedItemRepository returnedItemRepository;
 
@@ -67,7 +70,8 @@ public class ReturnedItemResourceIT {
     public static ReturnedItem createEntity(EntityManager em) {
         ReturnedItem returnedItem = new ReturnedItem()
             .bookId(DEFAULT_BOOK_ID)
-            .returnedDate(DEFAULT_RETURNED_DATE);
+            .returnedDate(DEFAULT_RETURNED_DATE)
+            .bookTitle(DEFAULT_BOOK_TITLE);
         return returnedItem;
     }
     /**
@@ -79,7 +83,8 @@ public class ReturnedItemResourceIT {
     public static ReturnedItem createUpdatedEntity(EntityManager em) {
         ReturnedItem returnedItem = new ReturnedItem()
             .bookId(UPDATED_BOOK_ID)
-            .returnedDate(UPDATED_RETURNED_DATE);
+            .returnedDate(UPDATED_RETURNED_DATE)
+            .bookTitle(UPDATED_BOOK_TITLE);
         return returnedItem;
     }
 
@@ -106,6 +111,7 @@ public class ReturnedItemResourceIT {
         ReturnedItem testReturnedItem = returnedItemList.get(returnedItemList.size() - 1);
         assertThat(testReturnedItem.getBookId()).isEqualTo(DEFAULT_BOOK_ID);
         assertThat(testReturnedItem.getReturnedDate()).isEqualTo(DEFAULT_RETURNED_DATE);
+        assertThat(testReturnedItem.getBookTitle()).isEqualTo(DEFAULT_BOOK_TITLE);
     }
 
     @Test
@@ -141,9 +147,10 @@ public class ReturnedItemResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(returnedItem.getId().intValue())))
             .andExpect(jsonPath("$.[*].bookId").value(hasItem(DEFAULT_BOOK_ID.intValue())))
-            .andExpect(jsonPath("$.[*].returnedDate").value(hasItem(DEFAULT_RETURNED_DATE.toString())));
+            .andExpect(jsonPath("$.[*].returnedDate").value(hasItem(DEFAULT_RETURNED_DATE.toString())))
+            .andExpect(jsonPath("$.[*].bookTitle").value(hasItem(DEFAULT_BOOK_TITLE)));
     }
-    
+
     @Test
     @Transactional
     public void getReturnedItem() throws Exception {
@@ -156,7 +163,8 @@ public class ReturnedItemResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(returnedItem.getId().intValue()))
             .andExpect(jsonPath("$.bookId").value(DEFAULT_BOOK_ID.intValue()))
-            .andExpect(jsonPath("$.returnedDate").value(DEFAULT_RETURNED_DATE.toString()));
+            .andExpect(jsonPath("$.returnedDate").value(DEFAULT_RETURNED_DATE.toString()))
+            .andExpect(jsonPath("$.bookTitle").value(DEFAULT_BOOK_TITLE));
     }
 
     @Test
@@ -181,7 +189,8 @@ public class ReturnedItemResourceIT {
         em.detach(updatedReturnedItem);
         updatedReturnedItem
             .bookId(UPDATED_BOOK_ID)
-            .returnedDate(UPDATED_RETURNED_DATE);
+            .returnedDate(UPDATED_RETURNED_DATE)
+            .bookTitle(UPDATED_BOOK_TITLE);
         ReturnedItemDTO returnedItemDTO = returnedItemMapper.toDto(updatedReturnedItem);
 
         restReturnedItemMockMvc.perform(put("/api/returned-items")
@@ -195,6 +204,7 @@ public class ReturnedItemResourceIT {
         ReturnedItem testReturnedItem = returnedItemList.get(returnedItemList.size() - 1);
         assertThat(testReturnedItem.getBookId()).isEqualTo(UPDATED_BOOK_ID);
         assertThat(testReturnedItem.getReturnedDate()).isEqualTo(UPDATED_RETURNED_DATE);
+        assertThat(testReturnedItem.getBookTitle()).isEqualTo(UPDATED_BOOK_TITLE);
     }
 
     @Test

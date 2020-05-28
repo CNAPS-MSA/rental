@@ -25,6 +25,9 @@
             <column name="due_date" type="date">
                 <constraints nullable="true" />
             </column>
+            <column name="book_title" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <column name="rental_id" type="bigint">
                 <constraints nullable="true" />
             </column>
@@ -54,6 +57,7 @@
             <column name="book_id" type="numeric"/>
             <column name="rented_date" type="date"/>
             <column name="due_date" type="date"/>
+            <column name="book_title" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here, do not remove-->
         </loadData>
     </changeSet>

@@ -1,17 +1,20 @@
 package com.skcc.rental.web.rest;
 
-import com.skcc.rental.adaptor.RentalKafkaProducer;
+import com.skcc.rental.adaptor.BookClient;
+import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
+import com.skcc.rental.web.rest.dto.BookInfo;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
-import com.skcc.rental.service.dto.RentalDTO;
+import com.skcc.rental.web.rest.dto.RentalDTO;
 
+import com.skcc.rental.web.rest.mapper.RentalMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
-import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -21,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST controller for managing {@link com.skcc.rental.domain.Rental}.
@@ -34,13 +36,18 @@ public class RentalResource {
 
     private static final String ENTITY_NAME = "rentalRental";
 
+    private final BookClient bookClient;
+
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
     private final RentalService rentalService;
+    private final RentalMapper rentalMapper;
 
-    public RentalResource(RentalService rentalService) {
+    public RentalResource(RentalService rentalService, RentalMapper rentalMapper, BookClient bookClient) {
         this.rentalService = rentalService;
+        this.rentalMapper = rentalMapper;
+        this.bookClient = bookClient;
     }
 
     /**
@@ -56,7 +63,7 @@ public class RentalResource {
         if (rentalDTO.getId() != null) {
             throw new BadRequestAlertException("A new rental cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        RentalDTO result = rentalService.save(rentalDTO);
+        RentalDTO result = rentalMapper.toDto(rentalService.save(rentalMapper.toEntity(rentalDTO)));
         return ResponseEntity.created(new URI("/api/rentals/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -77,7 +84,7 @@ public class RentalResource {
         if (rentalDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        RentalDTO result = rentalService.save(rentalDTO);
+        RentalDTO result = rentalMapper.toDto(rentalService.save(rentalMapper.toEntity(rentalDTO)));
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, rentalDTO.getId().toString()))
             .body(result);
@@ -92,9 +99,13 @@ public class RentalResource {
     @GetMapping("/rentals")
     public ResponseEntity<List<RentalDTO>> getAllRentals(Pageable pageable) {
         log.debug("REST request to get a page of Rentals");
-        Page<RentalDTO> page = rentalService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+
+        Page<Rental> rentalPage = rentalService.findAll(pageable);
+        List<RentalDTO> rentalDTOS = rentalMapper.toDto(rentalPage.getContent());
+        HttpHeaders headers =
+            PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(),
+            new PageImpl<>(rentalDTOS));
+        return ResponseEntity.ok().headers(headers).body(rentalDTOS);
     }
 
     /**
@@ -106,8 +117,9 @@ public class RentalResource {
     @GetMapping("/rentals/{id}")
     public ResponseEntity<RentalDTO> getRental(@PathVariable Long id) {
         log.debug("REST request to get Rental : {}", id);
-        Optional<RentalDTO> rentalDTO = rentalService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(rentalDTO);
+
+        RentalDTO rentalDTO = rentalMapper.toDto(rentalService.findOne(id).get());
+        return ResponseEntity.ok().body(rentalDTO);
     }
 
     /**
@@ -130,25 +142,36 @@ public class RentalResource {
     *
     *
     */
-    @PostMapping("/rentbooks/by/{userid}/books/{books}")
+//    @PostMapping("/rentbooks/by/{userid}/books/{books}")
+//    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
+//        log.debug("rent book request");
+//        rentalService.rentBooks(userid,books);
+//
+//        log.debug("SEND BOOKIDS for Book: {}", books);
+//
+//        return ResponseEntity.ok().build();
+//    }
+
+    @PostMapping("/rentbooks/{userid}/{books}")
     public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
         log.debug("rent book request");
-        rentalService.rentBooks(userid,books);
-
-//        if(rentalDTO==null){
-//            throw new BadRequestAlertException("Invalid ", ENTITY_NAME, "null");
-//        }
-        log.debug("SEND BOOKIDS for Book: {}", books);
-
-        return ResponseEntity.ok().build();
+        List<BookInfo> bookInfoList = bookClient.getBookInfo(books);
+        log.debug("book info list",bookInfoList.toString());
+        Rental rental =rentalService.rentBooks(userid, bookInfoList);
+        if(rental!=null){
+            rentalService.updateBookStatus(books, "UNAVAILABLE");
+        }
+        return ResponseEntity.ok().body(rental);
     }
 
-    @PutMapping("/returnbooks/by/{userid}/books/{books}")
+    @PutMapping("/returnbooks/{userid}/{books}")
     public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
-        rentalService.returnBooks(userid,books);
+        Rental rental=rentalService.returnBooks(userid,books);
         log.debug("returned books");
         log.debug("SEND BOOKIDS for Book: {}", books);
-
+        if(rental!=null){
+            rentalService.updateBookStatus(books, "AVAILABLE");
+        }
         return ResponseEntity.ok().build();
     }
 }

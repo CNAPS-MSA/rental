@@ -30,6 +30,9 @@ public class OverdueItem implements Serializable {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Column(name = "book_title")
+    private String bookTitle;
+
     @ManyToOne
     @JsonIgnoreProperties("overdueItems")
     private Rental rental;
@@ -69,6 +72,19 @@ public class OverdueItem implements Serializable {
         this.dueDate = dueDate;
     }
 
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public OverdueItem bookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
+        return this;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
+    }
+
     public Rental getRental() {
         return rental;
     }
@@ -105,6 +121,18 @@ public class OverdueItem implements Serializable {
             "id=" + getId() +
             ", bookId=" + getBookId() +
             ", dueDate='" + getDueDate() + "'" +
+            ", bookTitle='" + getBookTitle() + "'" +
             "}";
     }
+
+    //생성 메소드
+    public static OverdueItem createOverdueItem(Long bookId, String bookTitle, LocalDate dueDate){
+        OverdueItem overdueItem = new OverdueItem();
+        overdueItem.setBookId(bookId);
+        overdueItem.setBookTitle(bookTitle);
+        overdueItem.setDueDate(dueDate);
+
+        return overdueItem;
+    }
+
 }

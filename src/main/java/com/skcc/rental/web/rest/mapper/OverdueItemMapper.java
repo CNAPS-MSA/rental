@@ -1,8 +1,8 @@
-package com.skcc.rental.service.mapper;
+package com.skcc.rental.web.rest.mapper;
 
 
 import com.skcc.rental.domain.*;
-import com.skcc.rental.service.dto.OverdueItemDTO;
+import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 
 import org.mapstruct.*;
 
