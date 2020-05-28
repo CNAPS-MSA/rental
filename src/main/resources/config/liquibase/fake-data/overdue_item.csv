@@ -1,11 +1,11 @@
-id;book_id;due_date
-1;80968;2020-05-18
-2;28698;2020-05-17
-3;1778;2020-05-17
-4;25307;2020-05-17
-5;62323;2020-05-17
-6;79430;2020-05-17
-7;49296;2020-05-17
-8;89996;2020-05-17
-9;37393;2020-05-17
-10;31624;2020-05-18
+id;book_id;due_date;book_title
+1;80968;2020-05-18;Armenian Dram
+2;74076;2020-05-18;Personal Loan Account bluetooth
+3;49296;2020-05-17;withdrawal Product Licensed
+4;14806;2020-05-18;Awesome Plastic Table users
+5;98963;2020-05-17;Kids deposit bluetooth
+6;52410;2020-05-18;Dynamic
+7;40114;2020-05-17;Soft USB deposit
+8;84833;2020-05-17;Gorgeous Cotton Bacon
+9;94773;2020-05-17;Assistant solid state
+10;2724;2020-05-18;Bulgaria multi-tasking

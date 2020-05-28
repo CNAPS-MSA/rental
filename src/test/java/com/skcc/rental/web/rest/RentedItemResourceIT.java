@@ -4,8 +4,8 @@ import com.skcc.rental.RentalApp;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.service.RentedItemService;
-import com.skcc.rental.service.dto.RentedItemDTO;
-import com.skcc.rental.service.mapper.RentedItemMapper;
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
+import com.skcc.rental.web.rest.mapper.RentedItemMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +44,9 @@ public class RentedItemResourceIT {
     private static final LocalDate DEFAULT_DUE_DATE = LocalDate.ofEpochDay(0L);
     private static final LocalDate UPDATED_DUE_DATE = LocalDate.now(ZoneId.systemDefault());
 
+    private static final String DEFAULT_BOOK_TITLE = "AAAAAAAAAA";
+    private static final String UPDATED_BOOK_TITLE = "BBBBBBBBBB";
+
     @Autowired
     private RentedItemRepository rentedItemRepository;
 
@@ -71,7 +74,8 @@ public class RentedItemResourceIT {
         RentedItem rentedItem = new RentedItem()
             .bookId(DEFAULT_BOOK_ID)
             .rentedDate(DEFAULT_RENTED_DATE)
-            .dueDate(DEFAULT_DUE_DATE);
+            .dueDate(DEFAULT_DUE_DATE)
+            .bookTitle(DEFAULT_BOOK_TITLE);
         return rentedItem;
     }
     /**
@@ -84,7 +88,8 @@ public class RentedItemResourceIT {
         RentedItem rentedItem = new RentedItem()
             .bookId(UPDATED_BOOK_ID)
             .rentedDate(UPDATED_RENTED_DATE)
-            .dueDate(UPDATED_DUE_DATE);
+            .dueDate(UPDATED_DUE_DATE)
+            .bookTitle(UPDATED_BOOK_TITLE);
         return rentedItem;
     }
 
@@ -112,6 +117,7 @@ public class RentedItemResourceIT {
         assertThat(testRentedItem.getBookId()).isEqualTo(DEFAULT_BOOK_ID);
         assertThat(testRentedItem.getRentedDate()).isEqualTo(DEFAULT_RENTED_DATE);
         assertThat(testRentedItem.getDueDate()).isEqualTo(DEFAULT_DUE_DATE);
+        assertThat(testRentedItem.getBookTitle()).isEqualTo(DEFAULT_BOOK_TITLE);
     }
 
     @Test
@@ -148,9 +154,10 @@ public class RentedItemResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(rentedItem.getId().intValue())))
             .andExpect(jsonPath("$.[*].bookId").value(hasItem(DEFAULT_BOOK_ID.intValue())))
             .andExpect(jsonPath("$.[*].rentedDate").value(hasItem(DEFAULT_RENTED_DATE.toString())))
-            .andExpect(jsonPath("$.[*].dueDate").value(hasItem(DEFAULT_DUE_DATE.toString())));
+            .andExpect(jsonPath("$.[*].dueDate").value(hasItem(DEFAULT_DUE_DATE.toString())))
+            .andExpect(jsonPath("$.[*].bookTitle").value(hasItem(DEFAULT_BOOK_TITLE)));
     }
-    
+
     @Test
     @Transactional
     public void getRentedItem() throws Exception {
@@ -164,7 +171,8 @@ public class RentedItemResourceIT {
             .andExpect(jsonPath("$.id").value(rentedItem.getId().intValue()))
             .andExpect(jsonPath("$.bookId").value(DEFAULT_BOOK_ID.intValue()))
             .andExpect(jsonPath("$.rentedDate").value(DEFAULT_RENTED_DATE.toString()))
-            .andExpect(jsonPath("$.dueDate").value(DEFAULT_DUE_DATE.toString()));
+            .andExpect(jsonPath("$.dueDate").value(DEFAULT_DUE_DATE.toString()))
+            .andExpect(jsonPath("$.bookTitle").value(DEFAULT_BOOK_TITLE));
     }
 
     @Test
@@ -190,7 +198,8 @@ public class RentedItemResourceIT {
         updatedRentedItem
             .bookId(UPDATED_BOOK_ID)
             .rentedDate(UPDATED_RENTED_DATE)
-            .dueDate(UPDATED_DUE_DATE);
+            .dueDate(UPDATED_DUE_DATE)
+            .bookTitle(UPDATED_BOOK_TITLE);
         RentedItemDTO rentedItemDTO = rentedItemMapper.toDto(updatedRentedItem);
 
         restRentedItemMockMvc.perform(put("/api/rented-items")
@@ -205,6 +214,7 @@ public class RentedItemResourceIT {
         assertThat(testRentedItem.getBookId()).isEqualTo(UPDATED_BOOK_ID);
         assertThat(testRentedItem.getRentedDate()).isEqualTo(UPDATED_RENTED_DATE);
         assertThat(testRentedItem.getDueDate()).isEqualTo(UPDATED_DUE_DATE);
+        assertThat(testRentedItem.getBookTitle()).isEqualTo(UPDATED_BOOK_TITLE);
     }
 
     @Test

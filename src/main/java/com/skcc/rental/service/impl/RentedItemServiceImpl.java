@@ -3,8 +3,8 @@ package com.skcc.rental.service.impl;
 import com.skcc.rental.service.RentedItemService;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.repository.RentedItemRepository;
-import com.skcc.rental.service.dto.RentedItemDTO;
-import com.skcc.rental.service.mapper.RentedItemMapper;
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
+import com.skcc.rental.web.rest.mapper.RentedItemMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

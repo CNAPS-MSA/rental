@@ -4,8 +4,8 @@ import com.skcc.rental.RentalApp;
 import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.repository.OverdueItemRepository;
 import com.skcc.rental.service.OverdueItemService;
-import com.skcc.rental.service.dto.OverdueItemDTO;
-import com.skcc.rental.service.mapper.OverdueItemMapper;
+import com.skcc.rental.web.rest.dto.OverdueItemDTO;
+import com.skcc.rental.web.rest.mapper.OverdueItemMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +41,9 @@ public class OverdueItemResourceIT {
     private static final LocalDate DEFAULT_DUE_DATE = LocalDate.ofEpochDay(0L);
     private static final LocalDate UPDATED_DUE_DATE = LocalDate.now(ZoneId.systemDefault());
 
+    private static final String DEFAULT_BOOK_TITLE = "AAAAAAAAAA";
+    private static final String UPDATED_BOOK_TITLE = "BBBBBBBBBB";
+
     @Autowired
     private OverdueItemRepository overdueItemRepository;
 
@@ -67,7 +70,8 @@ public class OverdueItemResourceIT {
     public static OverdueItem createEntity(EntityManager em) {
         OverdueItem overdueItem = new OverdueItem()
             .bookId(DEFAULT_BOOK_ID)
-            .dueDate(DEFAULT_DUE_DATE);
+            .dueDate(DEFAULT_DUE_DATE)
+            .bookTitle(DEFAULT_BOOK_TITLE);
         return overdueItem;
     }
     /**
@@ -79,7 +83,8 @@ public class OverdueItemResourceIT {
     public static OverdueItem createUpdatedEntity(EntityManager em) {
         OverdueItem overdueItem = new OverdueItem()
             .bookId(UPDATED_BOOK_ID)
-            .dueDate(UPDATED_DUE_DATE);
+            .dueDate(UPDATED_DUE_DATE)
+            .bookTitle(UPDATED_BOOK_TITLE);
         return overdueItem;
     }
 
@@ -106,6 +111,7 @@ public class OverdueItemResourceIT {
         OverdueItem testOverdueItem = overdueItemList.get(overdueItemList.size() - 1);
         assertThat(testOverdueItem.getBookId()).isEqualTo(DEFAULT_BOOK_ID);
         assertThat(testOverdueItem.getDueDate()).isEqualTo(DEFAULT_DUE_DATE);
+        assertThat(testOverdueItem.getBookTitle()).isEqualTo(DEFAULT_BOOK_TITLE);
     }
 
     @Test
@@ -141,9 +147,10 @@ public class OverdueItemResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(overdueItem.getId().intValue())))
             .andExpect(jsonPath("$.[*].bookId").value(hasItem(DEFAULT_BOOK_ID.intValue())))
-            .andExpect(jsonPath("$.[*].dueDate").value(hasItem(DEFAULT_DUE_DATE.toString())));
+            .andExpect(jsonPath("$.[*].dueDate").value(hasItem(DEFAULT_DUE_DATE.toString())))
+            .andExpect(jsonPath("$.[*].bookTitle").value(hasItem(DEFAULT_BOOK_TITLE)));
     }
-    
+
     @Test
     @Transactional
     public void getOverdueItem() throws Exception {
@@ -156,7 +163,8 @@ public class OverdueItemResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(overdueItem.getId().intValue()))
             .andExpect(jsonPath("$.bookId").value(DEFAULT_BOOK_ID.intValue()))
-            .andExpect(jsonPath("$.dueDate").value(DEFAULT_DUE_DATE.toString()));
+            .andExpect(jsonPath("$.dueDate").value(DEFAULT_DUE_DATE.toString()))
+            .andExpect(jsonPath("$.bookTitle").value(DEFAULT_BOOK_TITLE));
     }
 
     @Test
@@ -181,7 +189,8 @@ public class OverdueItemResourceIT {
         em.detach(updatedOverdueItem);
         updatedOverdueItem
             .bookId(UPDATED_BOOK_ID)
-            .dueDate(UPDATED_DUE_DATE);
+            .dueDate(UPDATED_DUE_DATE)
+            .bookTitle(UPDATED_BOOK_TITLE);
         OverdueItemDTO overdueItemDTO = overdueItemMapper.toDto(updatedOverdueItem);
 
         restOverdueItemMockMvc.perform(put("/api/overdue-items")
@@ -195,6 +204,7 @@ public class OverdueItemResourceIT {
         OverdueItem testOverdueItem = overdueItemList.get(overdueItemList.size() - 1);
         assertThat(testOverdueItem.getBookId()).isEqualTo(UPDATED_BOOK_ID);
         assertThat(testOverdueItem.getDueDate()).isEqualTo(UPDATED_DUE_DATE);
+        assertThat(testOverdueItem.getBookTitle()).isEqualTo(UPDATED_BOOK_TITLE);
     }
 
     @Test

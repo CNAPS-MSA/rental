@@ -12,6 +12,10 @@
         {
             "fieldName": "dueDate",
             "fieldType": "LocalDate"
+        },
+        {
+            "fieldName": "bookTitle",
+            "fieldType": "String"
         }
     ],
     "relationships": [
@@ -34,5 +38,7 @@
     "embedded": false,
     "clientRootFolder": "rental",
     "applications": "*",
-    "microserviceName": "rental"
+    "microserviceName": "rental",
+    "searchEngine": false,
+    "databaseType": "sql"
 }

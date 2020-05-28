@@ -1,5 +1,7 @@
-package com.skcc.rental.service.mapper;
+package com.skcc.rental.web.rest.mapper;
 
+import com.skcc.rental.web.rest.mapper.RentalMapperImpl;
+import com.skcc.rental.web.rest.mapper.RentalMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;

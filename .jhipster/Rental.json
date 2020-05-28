@@ -8,7 +8,7 @@
         {
             "fieldName": "rentalStatus",
             "fieldType": "RentalStatus",
-            "fieldValues": "OK,RENTED,OVERDUE"
+            "fieldValues": "RENT_AVAILABLE,RENT_UNAVAILABLE"
         },
         {
             "fieldName": "lateFee",

@@ -1,4 +1,4 @@
-package com.skcc.rental.service.dto;
+package com.skcc.rental.web.rest.dto;
 
 import java.io.Serializable;
 import java.util.Objects;

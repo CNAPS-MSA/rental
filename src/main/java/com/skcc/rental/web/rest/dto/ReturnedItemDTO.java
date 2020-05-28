@@ -1,4 +1,4 @@
-package com.skcc.rental.service.dto;
+package com.skcc.rental.web.rest.dto;
 
 import java.time.LocalDate;
 import java.io.Serializable;
@@ -8,16 +8,18 @@ import java.util.Objects;
  * A DTO for the {@link com.skcc.rental.domain.ReturnedItem} entity.
  */
 public class ReturnedItemDTO implements Serializable {
-    
+
     private Long id;
 
     private Long bookId;
 
     private LocalDate returnedDate;
 
+    private String bookTitle;
+
 
     private Long rentalId;
-    
+
     public Long getId() {
         return id;
     }
@@ -40,6 +42,14 @@ public class ReturnedItemDTO implements Serializable {
 
     public void setReturnedDate(LocalDate returnedDate) {
         this.returnedDate = returnedDate;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 
     public Long getRentalId() {
@@ -77,6 +87,7 @@ public class ReturnedItemDTO implements Serializable {
             "id=" + getId() +
             ", bookId=" + getBookId() +
             ", returnedDate='" + getReturnedDate() + "'" +
+            ", bookTitle='" + getBookTitle() + "'" +
             ", rentalId=" + getRentalId() +
             "}";
     }

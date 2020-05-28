@@ -1,4 +1,6 @@
-package com.skcc.rental.service.mapper;
+package com.skcc.rental.web.rest.mapper;
+
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -18,4 +20,6 @@ public interface EntityMapper <D, E> {
     List <E> toEntity(List<D> dtoList);
 
     List <D> toDto(List<E> entityList);
+
+
 }

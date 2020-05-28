@@ -1,23 +1,27 @@
-package com.skcc.rental.service.dto;
+package com.skcc.rental.web.rest.dto;
 
 import java.time.LocalDate;
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A DTO for the {@link com.skcc.rental.domain.OverdueItem} entity.
+ * A DTO for the {@link com.skcc.rental.domain.RentedItem} entity.
  */
-public class OverdueItemDTO implements Serializable {
-    
+public class RentedItemDTO implements Serializable {
+
     private Long id;
 
     private Long bookId;
 
+    private LocalDate rentedDate;
+
     private LocalDate dueDate;
+
+    private String bookTitle;
 
 
     private Long rentalId;
-    
+
     public Long getId() {
         return id;
     }
@@ -34,12 +38,28 @@ public class OverdueItemDTO implements Serializable {
         this.bookId = bookId;
     }
 
+    public LocalDate getRentedDate() {
+        return rentedDate;
+    }
+
+    public void setRentedDate(LocalDate rentedDate) {
+        this.rentedDate = rentedDate;
+    }
+
     public LocalDate getDueDate() {
         return dueDate;
     }
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
     }
 
     public Long getRentalId() {
@@ -59,11 +79,11 @@ public class OverdueItemDTO implements Serializable {
             return false;
         }
 
-        OverdueItemDTO overdueItemDTO = (OverdueItemDTO) o;
-        if (overdueItemDTO.getId() == null || getId() == null) {
+        RentedItemDTO rentedItemDTO = (RentedItemDTO) o;
+        if (rentedItemDTO.getId() == null || getId() == null) {
             return false;
         }
-        return Objects.equals(getId(), overdueItemDTO.getId());
+        return Objects.equals(getId(), rentedItemDTO.getId());
     }
 
     @Override
@@ -73,10 +93,12 @@ public class OverdueItemDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "OverdueItemDTO{" +
+        return "RentedItemDTO{" +
             "id=" + getId() +
             ", bookId=" + getBookId() +
+            ", rentedDate='" + getRentedDate() + "'" +
             ", dueDate='" + getDueDate() + "'" +
+            ", bookTitle='" + getBookTitle() + "'" +
             ", rentalId=" + getRentalId() +
             "}";
     }

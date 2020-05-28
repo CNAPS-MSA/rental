@@ -1,16 +1,14 @@
 package com.skcc.rental.service.impl;
 
+import com.hazelcast.client.impl.protocol.codec.ReplicatedMapAddEntryListenerCodec;
 import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.domain.RentedItem;
-import com.skcc.rental.domain.ReturnedItem;
-import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.repository.RentalRepository;
-import com.skcc.rental.service.dto.RentalDTO;
-import com.skcc.rental.service.mapper.RentalMapper;
+import com.skcc.rental.web.rest.dto.BookInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +17,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.print.Book;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.skcc.rental.domain.RentedItem.createRentedItem;
 
 /**
  * Service Implementation for managing {@link Rental}.
@@ -40,29 +42,24 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalKafkaProducer rentalKafkaProducer;
 
-    private final RentalMapper rentalMapper;
-
-    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository, RentalMapper rentalMapper,
+    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository,
                              RentalKafkaProducer rentalKafkaProducer) {
         this.rentalRepository = rentalRepository;
         this.rentedItemRepository = rentedItemRepository;
         this.returnedItemRepository = returnedItemRepository;
-        this.rentalMapper = rentalMapper;
         this.rentalKafkaProducer = rentalKafkaProducer;
     }
 
     /**
      * Save a rental.
      *
-     * @param rentalDTO the entity to save.
+     * @param rental
      * @return the persisted entity.
      */
     @Override
-    public RentalDTO save(RentalDTO rentalDTO) {
-        log.debug("Request to save Rental : {}", rentalDTO);
-        Rental rental = rentalMapper.toEntity(rentalDTO);
-        rental = rentalRepository.save(rental);
-        return rentalMapper.toDto(rental);
+    public Rental save(Rental rental) {
+        log.debug("Request to save Rental : {}", rental);
+        return rentalRepository.save(rental);
     }
 
     /**
@@ -73,10 +70,9 @@ public class RentalServiceImpl implements RentalService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<RentalDTO> findAll(Pageable pageable) {
+    public Page<Rental> findAll(Pageable pageable) {
         log.debug("Request to get all Rentals");
-        return rentalRepository.findAll(pageable)
-            .map(rentalMapper::toDto);
+        return rentalRepository.findAll(pageable);
     }
 
     /**
@@ -87,10 +83,9 @@ public class RentalServiceImpl implements RentalService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<RentalDTO> findOne(Long id) {
+    public Optional<Rental> findOne(Long id) {
         log.debug("Request to get Rental : {}", id);
-        return rentalRepository.findById(id)
-            .map(rentalMapper::toDto);
+        return rentalRepository.findById(id);
     }
 
     /**
@@ -104,64 +99,58 @@ public class RentalServiceImpl implements RentalService {
         rentalRepository.deleteById(id);
     }
 
-    @Override
-    public void rentBooks(Long userId, List<Long> bookIds) {
-        log.debug("Rent Books by : ", userId, " Book List : ", bookIds);
-
-        if(rentalRepository.findByUserId(userId).isPresent()){ //기존에 대여 내역이 있는 경우
-            Rental rental = rentalRepository.findByUserId(userId).get();
-            rental = rental.rentBooks(bookIds);
-            if(rental==null)
-            {
-                log.debug("대여 불가능 상태입니다.");
-                return ;
-            }
-
-            rentalRepository.save(rental);
-            rentalKafkaProducer.updateBookStatus(bookIds, "UNAVAILABLE");
-
-            log.debug(" 대여 완료 되었습니다.", rental);
-        }else{ // 첫 대여인 경우
-            log.debug("첫 도서 대여입니다.");
-            Rental rental = Rental.createRental(userId);
-            rentalRepository.save(rental);
-            rental=rental.rentBooks(bookIds);
-
-            rentalRepository.save(rental);
-            log.debug(" 대여 완료 되었습니다.", rental);
-
-            rentalKafkaProducer.updateBookStatus(bookIds, "UNAVAILABLE");
-        }
-
-
-    }
-
-    @Override
-    public void returnBooks(Long userId, List<Long> bookIds) {
-        log.debug("Return books by ", userId, " Return Book List : ", bookIds);
-
+    @Transactional
+    public Rental rentBooks(Long userId, List<BookInfo> books) {
+        log.debug("Rent Books by : ", userId, " Book List : ", books);
+        Rental rental = new Rental();
         if(rentalRepository.findByUserId(userId).isPresent()){
-            Rental rental = rentalRepository.findByUserId(userId).get();
-            for(Long bookId: bookIds){
-                RentedItem rentedItem = rentedItemRepository.findByBookId(bookId).get();
-                if(rentedItem.getRental().getUserId()==userId) {  // 대여했던 책의 유저 정보와 일치하면 반납 진행
-                    rental = rental.returnbook(bookId, rentedItem);
-                    rentalRepository.save(rental);
-
-                    rentalKafkaProducer.updateBookStatus(bookIds, "AVAILABLE");
-                }else{
-                    log.debug("도서정보와 사용자 정보가 일치하지 않습니다.");
-                    return;
-                }
-            }
-
-
-            return ;
-
+            rental = rentalRepository.findByUserId(userId).get();
         }else{
-            log.debug("대여 이력이 없습니다.");
-            return ;
+            //도서카드 생성 -> rental과 user 연결 후 삭제해야함
+            log.debug("첫 도서 대여 입니다.");
+            rental = Rental.createRental(userId);
         }
 
+
+        List<RentedItem> rentedItems=books.stream()
+            .map(bookInfo -> RentedItem.createRentedItem(bookInfo.getId(), bookInfo.getTitle(), LocalDate.now()))
+            .collect(Collectors.toList());
+
+        for(RentedItem rentedItem: rentedItems){
+            rental = rental.rentBook(rentedItem);
+        }
+
+        rentalRepository.save(rental);
+
+        return rental;
     }
+
+
+    @Transactional
+    public Rental returnBooks(Long userId, List<Long> bookIds) {
+        log.debug("Return books by ", userId, " Return Book List : ", bookIds);
+        Rental rental = rentalRepository.findByUserId(userId).get();
+
+        List<RentedItem> rentedItems = rental.getRentedItems().stream()
+            .filter(rentedItem -> bookIds.stream().anyMatch(bookId-> bookId==rentedItem.getBookId()))
+            .collect(Collectors.toList());
+
+        for(RentedItem rentedItem: rentedItems){
+            rental.rentBook(rentedItem);
+        }
+
+        rental = rentalRepository.save(rental);
+
+        return rental;
+
+
+
+    }
+
+    @Override
+    public void updateBookStatus(List<Long> bookIds, String bookStatus) {
+        rentalKafkaProducer.updateBookStatus(bookIds, bookStatus);
+    }
+
+
 }

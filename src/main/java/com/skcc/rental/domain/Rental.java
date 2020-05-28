@@ -199,27 +199,29 @@ public class Rental implements Serializable {
             ", lateFee=" + getLateFee() +
             "}";
     }
-    //생성메소드//
+    //최초 대여 시//
+    /**
+     *
+     * @param userId
+     * @return
+     */
     public static Rental createRental(Long userId){
         Rental rental = new Rental();
         rental.setUserId(userId);
-        rental.setRentalStatus(RentalStatus.OK);
-        rental.setRentedItems(new HashSet<>());
-        rental.setOverdueItems(new HashSet<>());
-        rental.setReturnedItems(new HashSet<>());
+        //대여 가능하게 상태 변경
+        rental.setRentalStatus(RentalStatus.RENT_AVAILABLE);
         rental.setLateFee((long)0);
         return rental;
     }
 
     //대여하기 메소드//
-    public Rental rentBooks(List<Long> bookIds){
-        if(checkRentalAvailable(bookIds.size())){
-            for(Long bookId : bookIds){
-                RentedItem rentedItem = RentedItem.createRentedItem(this, bookId, LocalDate.now());
-                this.addRentedItem(rentedItem);
-            }
-            this.setRentalStatus(RentalStatus.RENTED);
-            this.setLateFee((long)0);
+    public Rental rentBook(RentedItem rentedItem){
+        //현재 대여목록 갯수와 대여할 도서 갯수 파악
+        Integer currentBookCnt = this.rentedItems.size();
+        //5건 이상검토
+        if(checkRentalAvailable(currentBookCnt)) {
+            this.addRentedItem(rentedItem);
+
             return this;
 
         }else{
@@ -227,12 +229,36 @@ public class Rental implements Serializable {
         }
     }
 
+    //반납 하기//
+    public Rental returnbook(RentedItem rentedItem) {
+
+        this.removeRentedItem(rentedItem);
+        this.addReturnedItem(ReturnedItem.createReturnedItem(rentedItem.getBookId(), rentedItem.getBookTitle(), LocalDate.now()));
+        return this;
+
+    }
+
+    //연체//
+    public Rental overdueBook(RentedItem rentedItem)
+    {
+        this.removeRentedItem(rentedItem);
+        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(),rentedItem.getBookTitle(),LocalDate.now()));
+        return this;
+    }
+
+    //연체해제//
+    public Rental releaseOverdue(OverdueItem overdueItem)
+    {
+        this.removeOverdueItem(overdueItem);
+        this.addReturnedItem(ReturnedItem.createReturnedItem(overdueItem.getBookId(),overdueItem.getBookTitle(),LocalDate.now()));
+        return this;
+    }
 
     //대여 가능 여부 체크 //
-    public boolean checkRentalAvailable(Integer newBookCnt){
-        if(this.rentalStatus!=RentalStatus.OVERDUE){
+    public boolean checkRentalAvailable(Integer currentBookCnt){
+        if(this.rentalStatus!=RentalStatus.RENT_UNAVAILABLE){
 
-            if(this.rentedItems.size()+newBookCnt >5){
+            if(currentBookCnt +1 >5){
                 System.out.println("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
                 return false;
             }else{
@@ -244,14 +270,4 @@ public class Rental implements Serializable {
         }
     }
 
-
-    public Rental returnbook(Long bookId, RentedItem rentedItem) {
-
-        this.removeRentedItem(rentedItem);
-        ReturnedItem returnedItem = ReturnedItem.createReturnedItem(this, bookId , LocalDate.now());
-        this.addReturnedItem(returnedItem);
-
-        return this;
-
-    }
 }
