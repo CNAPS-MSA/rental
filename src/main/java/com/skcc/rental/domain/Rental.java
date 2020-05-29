@@ -217,16 +217,10 @@ public class Rental implements Serializable {
     //대여하기 메소드//
     public Rental rentBook(RentedItem rentedItem){
         //현재 대여목록 갯수와 대여할 도서 갯수 파악
-        Integer currentBookCnt = this.rentedItems.size();
-        //5건 이상검토
-        if(checkRentalAvailable(currentBookCnt)) {
-            this.addRentedItem(rentedItem);
 
-            return this;
+        this.addRentedItem(rentedItem);
 
-        }else{
-            return null;
-        }
+        return this;
     }
 
     //반납 하기//
@@ -255,19 +249,12 @@ public class Rental implements Serializable {
     }
 
     //대여 가능 여부 체크 //
-    public boolean checkRentalAvailable(Integer currentBookCnt){
-        if(this.rentalStatus!=RentalStatus.RENT_UNAVAILABLE){
+    public boolean checkRentalAvailable(Integer newBookListCnt) throws Exception{
+        if(this.rentalStatus!=RentalStatus.RENT_UNAVAILABLE ) throw new Exception("연체 상태입니다.");
+        if(this.getLateFee()==0) throw new Exception("연체료를 정산 후, 도서를 대여하실 수 있습니다.");
+        if(newBookListCnt+this.getRentedItems().size() <=5) throw new Exception("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
 
-            if(currentBookCnt +1 >5){
-                System.out.println("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
-                return false;
-            }else{
-                return true;
-            }
-        }else{
-            System.out.println("연체 상태입니다.");
-            return false;
-        }
+        return true;
     }
 
 }
