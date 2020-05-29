@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.PrintException;
 import java.awt.print.Book;
 import java.time.LocalDate;
 import java.util.*;
@@ -100,7 +101,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Transactional
-    public Rental rentBooks(Long userId, List<BookInfo> books) {
+    public Rental rentBooks(Long userId, List<BookInfo> books) throws Exception {
         log.debug("Rent Books by : ", userId, " Book List : ", books);
         Rental rental = new Rental();
         if(rentalRepository.findByUserId(userId).isPresent()){
@@ -111,18 +112,30 @@ public class RentalServiceImpl implements RentalService {
             rental = Rental.createRental(userId);
         }
 
+        try{
+            Boolean checkRentalStatus = rental.checkRentalAvailable(books.size());
+            if(checkRentalStatus){
+            List<RentedItem> rentedItems = books.stream()
+                .map(bookInfo -> RentedItem.createRentedItem(bookInfo.getId(), bookInfo.getTitle(), LocalDate.now()))
+                .collect(Collectors.toList());
 
-        List<RentedItem> rentedItems=books.stream()
-            .map(bookInfo -> RentedItem.createRentedItem(bookInfo.getId(), bookInfo.getTitle(), LocalDate.now()))
-            .collect(Collectors.toList());
+            for (RentedItem rentedItem : rentedItems) {
+                rental = rental.rentBook(rentedItem);
 
-        for(RentedItem rentedItem: rentedItems){
-            rental = rental.rentBook(rentedItem);
+            }
+            rentalRepository.save(rental);
+
+
+            }
+
+        }catch (Exception e){
+            String errorMessage = e.getMessage();
+            System.out.println(errorMessage);
+            throw new Exception(errorMessage);
+
         }
-
-        rentalRepository.save(rental);
-
         return rental;
+
     }
 
 
@@ -132,11 +145,11 @@ public class RentalServiceImpl implements RentalService {
         Rental rental = rentalRepository.findByUserId(userId).get();
 
         List<RentedItem> rentedItems = rental.getRentedItems().stream()
-            .filter(rentedItem -> bookIds.stream().anyMatch(bookId-> bookId==rentedItem.getBookId()))
+            .filter(rentedItem -> bookIds.contains(rentedItem.getBookId()))
             .collect(Collectors.toList());
 
         for(RentedItem rentedItem: rentedItems){
-            rental.rentBook(rentedItem);
+            rental.returnbook(rentedItem);
         }
 
         rental = rentalRepository.save(rental);

@@ -153,15 +153,22 @@ public class RentalResource {
 //    }
 
     @PostMapping("/rentbooks/{userid}/{books}")
-    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
+    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws Exception {
         log.debug("rent book request");
         List<BookInfo> bookInfoList = bookClient.getBookInfo(books);
         log.debug("book info list",bookInfoList.toString());
-        Rental rental =rentalService.rentBooks(userid, bookInfoList);
-        if(rental!=null){
+        try {
+            Rental rental = rentalService.rentBooks(userid, bookInfoList);
+            //kafka - 책 상태 업데이트
             rentalService.updateBookStatus(books, "UNAVAILABLE");
+
+            RentalDTO result = rentalMapper.toDto(rental);
+            return ResponseEntity.ok().body(result);
+
+        }catch (Exception e){
+            throw new Exception(e.getMessage());
         }
-        return ResponseEntity.ok().body(rental);
+
     }
 
     @PutMapping("/returnbooks/{userid}/{books}")
@@ -169,9 +176,10 @@ public class RentalResource {
         Rental rental=rentalService.returnBooks(userid,books);
         log.debug("returned books");
         log.debug("SEND BOOKIDS for Book: {}", books);
-        if(rental!=null){
-            rentalService.updateBookStatus(books, "AVAILABLE");
-        }
-        return ResponseEntity.ok().build();
+
+        rentalService.updateBookStatus(books, "AVAILABLE");
+
+        RentalDTO result = rentalMapper.toDto(rental);
+        return ResponseEntity.ok().body(result);
     }
 }
