@@ -40,14 +40,14 @@ public class RentalKafkaProducer {
         log.info("Kafka producer initialized");
     }
 
-    public void updateBookStatus(List<Long> bookIds, String bookStatus){
+    public void updateBookStatus(Long bookId, String bookStatus){
         try {
-            for(Long bookId : bookIds) {
+
                 UpdateBookEvent updateBookEvent = new UpdateBookEvent(bookId, bookStatus);
                 String message = objectMapper.writeValueAsString(updateBookEvent);
                 ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, message);
                 producer.send(record);
-            }
+
         } catch (JsonProcessingException e) {
             logger.error("Could not send book List",e);
             e.printStackTrace();

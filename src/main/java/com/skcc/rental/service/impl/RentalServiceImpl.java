@@ -101,7 +101,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Transactional
-    public Rental rentBooks(Long userId, List<BookInfo> books) throws Exception {
+    public Rental rentBooks(Long userId, List<BookInfo> books) {
         log.debug("Rent Books by : ", userId, " Book List : ", books);
         Rental rental = new Rental();
         if(rentalRepository.findByUserId(userId).isPresent()){
@@ -122,6 +122,7 @@ public class RentalServiceImpl implements RentalService {
             for (RentedItem rentedItem : rentedItems) {
                 rental = rental.rentBook(rentedItem);
 
+
             }
             rentalRepository.save(rental);
 
@@ -131,8 +132,7 @@ public class RentalServiceImpl implements RentalService {
         }catch (Exception e){
             String errorMessage = e.getMessage();
             System.out.println(errorMessage);
-            throw new Exception(errorMessage);
-
+            return null;
         }
         return rental;
 
@@ -147,22 +147,27 @@ public class RentalServiceImpl implements RentalService {
         List<RentedItem> rentedItems = rental.getRentedItems().stream()
             .filter(rentedItem -> bookIds.contains(rentedItem.getBookId()))
             .collect(Collectors.toList());
+        log.debug("bookIds contain :" , rentedItems.size());
 
-        for(RentedItem rentedItem: rentedItems){
-            rental.returnbook(rentedItem);
+        if(rentedItems.size()>0) {
+            for (RentedItem rentedItem : rentedItems) {
+                rental.returnbook(rentedItem);
+            }
+
+            rental = rentalRepository.save(rental);
+
+            return rental;
+        }else{
+
+            return null;
         }
-
-        rental = rentalRepository.save(rental);
-
-        return rental;
-
 
 
     }
 
     @Override
-    public void updateBookStatus(List<Long> bookIds, String bookStatus) {
-        rentalKafkaProducer.updateBookStatus(bookIds, bookStatus);
+    public void updateBookStatus(Long bookId, String bookStatus) {
+        rentalKafkaProducer.updateBookStatus(bookId, bookStatus);
     }
 
 

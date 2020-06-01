@@ -153,33 +153,47 @@ public class RentalResource {
 //    }
 
     @PostMapping("/rentbooks/{userid}/{books}")
-    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws Exception {
+    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) {
         log.debug("rent book request");
         List<BookInfo> bookInfoList = bookClient.getBookInfo(books);
         log.debug("book info list",bookInfoList.toString());
-        try {
-            Rental rental = rentalService.rentBooks(userid, bookInfoList);
+
+        Rental rental = rentalService.rentBooks(userid, bookInfoList);
+
+        //추후 Exception처리//
+        if(rental!=null) {
             //kafka - 책 상태 업데이트
-            rentalService.updateBookStatus(books, "UNAVAILABLE");
+            bookInfoList.stream().forEach(b -> rentalService.updateBookStatus(b.getId(), "UNAVAILABLE"));
 
             RentalDTO result = rentalMapper.toDto(rental);
             return ResponseEntity.ok().body(result);
+        }else {
 
-        }catch (Exception e){
-            throw new Exception(e.getMessage());
+            log.debug("대여 불가:");
+
+            return ResponseEntity.badRequest().build();
+
         }
 
     }
 
     @PutMapping("/returnbooks/{userid}/{books}")
     public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
-        Rental rental=rentalService.returnBooks(userid,books);
-        log.debug("returned books");
-        log.debug("SEND BOOKIDS for Book: {}", books);
 
-        rentalService.updateBookStatus(books, "AVAILABLE");
 
-        RentalDTO result = rentalMapper.toDto(rental);
-        return ResponseEntity.ok().body(result);
+            Rental rental=rentalService.returnBooks(userid,books);
+            log.debug("returned books");
+            log.debug("SEND BOOKIDS for Book: {}", books);
+
+            //추후 Exception처리//
+            if(rental!=null) {
+                books.stream().forEach(b -> rentalService.updateBookStatus(b, "AVAILABLE"));
+                RentalDTO result = rentalMapper.toDto(rental);
+                return ResponseEntity.ok().body(result);
+            }else {
+                log.debug("대여기록에 없는 도서입니다.");
+                return ResponseEntity.badRequest().build();
+            }
+
     }
 }

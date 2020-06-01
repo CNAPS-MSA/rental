@@ -50,6 +50,7 @@ public class RentalDTO implements Serializable {
         this.lateFee = lateFee;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
