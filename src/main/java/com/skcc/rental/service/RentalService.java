@@ -53,7 +53,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    Rental rentBooks(Long userId, List<BookInfo> books) throws Exception;
+    Rental rentBooks(Long userId, List<BookInfo> books);
 
     /****
      *
@@ -65,5 +65,5 @@ public interface RentalService {
 
     Rental returnBooks(Long userId, List<Long> bookIds);
 
-    void updateBookStatus(List<Long> bookIds, String bookStatus);
+    void updateBookStatus(Long bookId, String bookStatus);
 }
