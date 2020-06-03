@@ -103,14 +103,8 @@ public class RentalServiceImpl implements RentalService {
     @Transactional
     public Rental rentBooks(Long userId, List<BookInfo> books) {
         log.debug("Rent Books by : ", userId, " Book List : ", books);
-        Rental rental = new Rental();
-        if(rentalRepository.findByUserId(userId).isPresent()){
-            rental = rentalRepository.findByUserId(userId).get();
-        }else{
-            //도서카드 생성 -> rental과 user 연결 후 삭제해야함
-            log.debug("첫 도서 대여 입니다.");
-            rental = Rental.createRental(userId);
-        }
+        Rental rental = rentalRepository.findByUserId(userId).get();
+
 
         try{
             Boolean checkRentalStatus = rental.checkRentalAvailable(books.size());
