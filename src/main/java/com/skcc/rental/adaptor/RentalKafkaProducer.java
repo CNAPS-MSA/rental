@@ -19,7 +19,7 @@ public class RentalKafkaProducer {
 
     private final Logger log = LoggerFactory.getLogger(RentalKafkaProducer.class);
 
-    private static final String TOPIC = "topic_kafka";
+    private static final String TOPIC = "topic_book";
 
     private final KafkaProperties kafkaProperties;
 
