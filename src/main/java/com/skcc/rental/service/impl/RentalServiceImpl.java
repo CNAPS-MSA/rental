@@ -1,5 +1,6 @@
 package com.skcc.rental.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hazelcast.client.impl.protocol.codec.ReplicatedMapAddEntryListenerCodec;
 import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.domain.RentedItem;
@@ -21,6 +22,7 @@ import javax.print.PrintException;
 import java.awt.print.Book;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +44,8 @@ public class RentalServiceImpl implements RentalService {
     private final ReturnedItemRepository returnedItemRepository;
 
     private final RentalKafkaProducer rentalKafkaProducer;
+
+    private int pointPerBooks = 30;
 
     public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository,
                              RentalKafkaProducer rentalKafkaProducer) {
@@ -160,8 +164,13 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public void updateBookStatus(Long bookId, String bookStatus) {
+    public void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {
         rentalKafkaProducer.updateBookStatus(bookId, bookStatus);
+    }
+
+    @Override
+    public void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException{
+        rentalKafkaProducer.savePoints(userId, bookCnt*pointPerBooks);
     }
 
 

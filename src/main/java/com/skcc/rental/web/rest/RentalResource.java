@@ -1,5 +1,6 @@
 package com.skcc.rental.web.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * REST controller for managing {@link com.skcc.rental.domain.Rental}.
@@ -153,7 +155,7 @@ public class RentalResource {
 //    }
 
     @PostMapping("/rentbooks/{userid}/{books}")
-    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) {
+    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
         List<BookInfo> bookInfoList = bookClient.getBookInfo(books);
         log.debug("book info list",bookInfoList.toString());
@@ -163,8 +165,19 @@ public class RentalResource {
         //추후 Exception처리//
         if(rental!=null) {
             //kafka - 책 상태 업데이트
-            bookInfoList.stream().forEach(b -> rentalService.updateBookStatus(b.getId(), "UNAVAILABLE"));
-
+            bookInfoList.stream().forEach(b -> {
+                try {
+                    rentalService.updateBookStatus(b.getId(), "UNAVAILABLE");
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            });
+            //kafka - user point 적립
+            rentalService.savePoints(userid,bookInfoList.size());
             RentalDTO result = rentalMapper.toDto(rental);
             return ResponseEntity.ok().body(result);
         }else {
@@ -178,7 +191,7 @@ public class RentalResource {
     }
 
     @PutMapping("/returnbooks/{userid}/{books}")
-    public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
+    public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) {
 
 
             Rental rental=rentalService.returnBooks(userid,books);
@@ -187,7 +200,17 @@ public class RentalResource {
 
             //추후 Exception처리//
             if(rental!=null) {
-                books.stream().forEach(b -> rentalService.updateBookStatus(b, "AVAILABLE"));
+                books.stream().forEach(b -> {
+                    try {
+                        rentalService.updateBookStatus(b, "AVAILABLE");
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                });
                 RentalDTO result = rentalMapper.toDto(rental);
                 return ResponseEntity.ok().body(result);
             }else {
