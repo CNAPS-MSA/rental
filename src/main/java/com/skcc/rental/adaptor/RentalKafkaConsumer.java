@@ -26,7 +26,7 @@ public class RentalKafkaConsumer {
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public static final String TOPIC ="topic_user";
+    public static final String TOPIC ="topic_rental";
 
     private final KafkaProperties kafkaProperties;
 

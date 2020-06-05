@@ -1,5 +1,6 @@
 package com.skcc.rental.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
 
 import com.skcc.rental.web.rest.dto.BookInfo;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Service Interface for managing {@link com.skcc.rental.domain.Rental}.
@@ -65,5 +67,7 @@ public interface RentalService {
 
     Rental returnBooks(Long userId, List<Long> bookIds);
 
-    void updateBookStatus(Long bookId, String bookStatus);
+    void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
+
+    void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException;
 }
