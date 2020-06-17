@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
 
 import com.skcc.rental.web.rest.dto.BookInfo;
+import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -70,4 +71,10 @@ public interface RentalService {
     void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
 
     void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException;
+
+    Rental overdueBooks(Long userId, List<Long> books);
+
+    Rental returnOverdueBooks(Long userid, List<Long> books);
+
+    Rental releaseOverdue(Long userId, int latefee);
 }

@@ -3,7 +3,9 @@ package com.skcc.rental.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hazelcast.client.impl.protocol.codec.ReplicatedMapAddEntryListenerCodec;
 import com.skcc.rental.adaptor.RentalKafkaProducer;
+import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.domain.RentedItem;
+import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.RentalService;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.print.PrintException;
 import java.awt.print.Book;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -149,7 +152,7 @@ public class RentalServiceImpl implements RentalService {
 
         if(rentedItems.size()>0) {
             for (RentedItem rentedItem : rentedItems) {
-                rental.returnbook(rentedItem);
+                rental= rental.returnbook(rentedItem);
             }
 
             rental = rentalRepository.save(rental);
@@ -159,7 +162,6 @@ public class RentalServiceImpl implements RentalService {
 
             return null;
         }
-
 
     }
 
@@ -171,6 +173,50 @@ public class RentalServiceImpl implements RentalService {
     @Override
     public void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException{
         rentalKafkaProducer.savePoints(userId, bookCnt*pointPerBooks);
+    }
+
+    @Override
+    public Rental overdueBooks(Long userId, List<Long> books) {
+        Rental rental = rentalRepository.findByUserId(userId).get();
+
+        List<RentedItem> rentedItems = rental.getRentedItems().stream()
+            .filter(rentedItem -> books.contains(rentedItem.getBookId()))
+            .collect(Collectors.toList());
+
+        if(rentedItems.size()>0){
+            for(RentedItem rentedItem: rentedItems) {
+                rental = rental.overdueBook(rentedItem);
+            }
+            rental.setRentalStatus(RentalStatus.RENT_UNAVAILABLE);
+            rental.setLateFee(rental.getLateFee()+(long)30); //연체시 연체비 30포인트 누적
+            return rentalRepository.save(rental);
+        }else{
+            return null;
+        }
+
+
+
+    }
+
+    @Override
+    public Rental returnOverdueBooks(Long userid, List<Long> books) {
+        Rental rental = rentalRepository.findByUserId(userid).get();
+
+        List<OverdueItem> overdueItems = rental.getOverdueItems().stream()
+            .filter(overdueItem -> books.contains(overdueItem.getBookId()))
+            .collect(Collectors.toList());
+
+        for(OverdueItem overdueItem:overdueItems){
+            rental = rental.returnOverdueBook(overdueItem);
+        }
+        return rentalRepository.save(rental);
+    }
+
+    @Override
+    public Rental releaseOverdue(Long userId, int latefee) {
+        Rental rental = rentalRepository.findByUserId(userId).get();
+        rental=rental.releaseOverdue((long)latefee);
+        return rentalRepository.save(rental);
     }
 
 
