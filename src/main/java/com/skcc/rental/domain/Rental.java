@@ -236,15 +236,22 @@ public class Rental implements Serializable {
     public Rental overdueBook(RentedItem rentedItem)
     {
         this.removeRentedItem(rentedItem);
-        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(),rentedItem.getBookTitle(),LocalDate.now()));
+        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(),rentedItem.getBookTitle(),rentedItem.getDueDate()));
         return this;
     }
 
-    //연체해제//
-    public Rental releaseOverdue(OverdueItem overdueItem)
+    //연체된 책 반납  //
+    public Rental returnOverdueBook(OverdueItem overdueItem)
     {
         this.removeOverdueItem(overdueItem);
         this.addReturnedItem(ReturnedItem.createReturnedItem(overdueItem.getBookId(),overdueItem.getBookTitle(),LocalDate.now()));
+        return this;
+    }
+
+    //연체 상태 해제//
+    public Rental releaseOverdue(Long lateFee){
+        this.setLateFee(this.lateFee-lateFee);
+        this.setRentalStatus(RentalStatus.RENT_AVAILABLE);
         return this;
     }
 

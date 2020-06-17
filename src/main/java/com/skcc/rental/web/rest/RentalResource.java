@@ -2,9 +2,11 @@ package com.skcc.rental.web.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.adaptor.BookClient;
+import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.BookInfo;
+import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.RentalDTO;
 
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,17 +42,18 @@ public class RentalResource {
     private static final String ENTITY_NAME = "rentalRental";
 
     private final BookClient bookClient;
-
+    private final UserClient userClient;
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
     private final RentalService rentalService;
     private final RentalMapper rentalMapper;
 
-    public RentalResource(RentalService rentalService, RentalMapper rentalMapper, BookClient bookClient) {
+    public RentalResource(RentalService rentalService, RentalMapper rentalMapper, BookClient bookClient, UserClient userClient) {
         this.rentalService = rentalService;
         this.rentalMapper = rentalMapper;
         this.bookClient = bookClient;
+        this.userClient = userClient;
     }
 
     /**
@@ -143,21 +147,12 @@ public class RentalResource {
     * rent books
     *
     *
-    */
-//    @PostMapping("/rentbooks/by/{userid}/books/{books}")
-//    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books){
-//        log.debug("rent book request");
-//        rentalService.rentBooks(userid,books);
-//
-//        log.debug("SEND BOOKIDS for Book: {}", books);
-//
-//        return ResponseEntity.ok().build();
-//    }
-
+    **/
     @PostMapping("/rentbooks/{userid}/{books}")
     public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
-        List<BookInfo> bookInfoList = bookClient.getBookInfo(books);
+        ResponseEntity<List<BookInfo>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
+        List<BookInfo> bookInfoList = bookInfoResult.getBody();
         log.debug("book info list",bookInfoList.toString());
 
         Rental rental = rentalService.rentBooks(userid, bookInfoList);
@@ -165,14 +160,10 @@ public class RentalResource {
         //추후 Exception처리//
         if(rental!=null) {
             //kafka - 책 상태 업데이트
-            bookInfoList.stream().forEach(b -> {
+            bookInfoList.forEach(b -> {
                 try {
                     rentalService.updateBookStatus(b.getId(), "UNAVAILABLE");
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (JsonProcessingException e) {
+                } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
                     e.printStackTrace();
                 }
             });
@@ -200,14 +191,10 @@ public class RentalResource {
 
             //추후 Exception처리//
             if(rental!=null) {
-                books.stream().forEach(b -> {
+                books.forEach(b -> {
                     try {
                         rentalService.updateBookStatus(b, "AVAILABLE");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (JsonProcessingException e) {
+                    } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
                         e.printStackTrace();
                     }
                 });
@@ -217,6 +204,49 @@ public class RentalResource {
                 log.debug("대여기록에 없는 도서입니다.");
                 return ResponseEntity.badRequest().build();
             }
+
+    }
+
+    @PutMapping("/setoverdue/{userid}/{books}")
+    public ResponseEntity setOverdue(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books){
+        Rental rental = rentalService.overdueBooks(userid, books);
+        log.debug("overdue Books");
+
+        //추후 Exception처리//
+        if(rental!=null) {
+            RentalDTO result = rentalMapper.toDto(rental);
+            return ResponseEntity.ok().body(result);
+        }else {
+            log.debug("대여기록에 없는 도서입니다.");
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/returnoverdue/{userid}/{books}")
+    public ResponseEntity returnOverdueBooks(@PathVariable("userid")Long userid, @PathVariable("books")List<Long> books){
+        Rental rental = rentalService.returnOverdueBooks(userid, books);
+        books.forEach(b -> { //책상태 업데이트
+            try {
+                rentalService.updateBookStatus(b, "AVAILABLE");
+            } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        });
+        RentalDTO result = rentalMapper.toDto(rental);
+        return ResponseEntity.ok().body(result);
+    }
+
+    @PutMapping("/releaseoverdue")
+    public ResponseEntity releaseOverdue(@RequestBody LatefeeDTO latefeeDTO){
+        ResponseEntity result = userClient.usePoint(latefeeDTO);
+        HttpStatus httpStatus = result.getStatusCode();
+        System.out.println(httpStatus);
+        if(httpStatus.equals(HttpStatus.OK)){
+            RentalDTO rentalDTO = rentalMapper.toDto(rentalService.releaseOverdue(latefeeDTO.getUserId(), latefeeDTO.getLatefee()));
+            return ResponseEntity.ok().body(rentalDTO);
+        }else{
+            return ResponseEntity.badRequest().build();
+        }
 
     }
 }
