@@ -3,6 +3,7 @@ package com.skcc.rental.adaptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
+import com.skcc.rental.domain.BookCatalogEvent;
 import com.skcc.rental.domain.SavePointsEvent;
 import com.skcc.rental.domain.UpdateBookEvent;
 import com.skcc.rental.web.rest.RentalKafkaResource;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.awt.print.Book;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +29,7 @@ public class RentalKafkaProducer {
     private final Logger log = LoggerFactory.getLogger(RentalKafkaProducer.class);
 
     private static final String TOPIC_BOOK = "topic_book";
+    private static final String TOPIC_CATALOG = "topic_catalog";
     private static final String TOPIC_POINT = "topic_point";
 
     private final KafkaProperties kafkaProperties;
@@ -69,6 +72,16 @@ public class RentalKafkaProducer {
         SavePointsEvent savePointsEvent = new SavePointsEvent(userId, points);
         String message = objectMapper.writeValueAsString(savePointsEvent);
         RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_POINT, message)).get();
+        return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
+    }
+
+    //대여, 반납  시 book catalog의 책 상태 업데이트
+    public PublishResult updateBookCatalogStatus(String bookTitle, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
+        BookCatalogEvent bookCatalogEvent = new BookCatalogEvent();
+        bookCatalogEvent.setTitle(bookTitle);
+        bookCatalogEvent.setEventType(eventType);
+        String message = objectMapper.writeValueAsString(bookCatalogEvent);
+        RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_CATALOG, message)).get();
         return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
     }
 

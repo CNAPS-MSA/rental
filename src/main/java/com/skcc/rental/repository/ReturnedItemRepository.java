@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface ReturnedItemRepository extends JpaRepository<ReturnedItem, Long> {
+    ReturnedItem findByBookId(Long bookId);
 }
