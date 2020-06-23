@@ -77,4 +77,10 @@ public interface RentalService {
     Rental returnOverdueBooks(Long userid, List<Long> books);
 
     Rental releaseOverdue(Long userId, int latefee);
+
+    LatefeeDTO createLatefee(Long userId);
+
+    void updateBookCatalog(String title, String rent_book) throws InterruptedException, ExecutionException, JsonProcessingException;
+
+    BookInfo getBookInfoForReturn(Long b);
 }

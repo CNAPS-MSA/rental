@@ -163,6 +163,7 @@ public class RentalResource {
             bookInfoList.forEach(b -> {
                 try {
                     rentalService.updateBookStatus(b.getId(), "UNAVAILABLE");
+                    rentalService.updateBookCatalog(b.getTitle(), "RENT_BOOK");
                 } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -194,6 +195,8 @@ public class RentalResource {
                 books.forEach(b -> {
                     try {
                         rentalService.updateBookStatus(b, "AVAILABLE");
+                        BookInfo bookInfo = rentalService.getBookInfoForReturn(b);
+                        rentalService.updateBookCatalog(bookInfo.getTitle(),"RETURN_BOOK");
                     } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
                         e.printStackTrace();
                     }
@@ -236,8 +239,9 @@ public class RentalResource {
         return ResponseEntity.ok().body(result);
     }
 
-    @PutMapping("/releaseoverdue")
-    public ResponseEntity releaseOverdue(@RequestBody LatefeeDTO latefeeDTO){
+    @PutMapping("/releaseoverdue/{userId}")
+    public ResponseEntity releaseOverdue(@PathVariable("userId")Long userId){
+        LatefeeDTO latefeeDTO = rentalService.createLatefee(userId);
         ResponseEntity result = userClient.usePoint(latefeeDTO);
         HttpStatus httpStatus = result.getStatusCode();
         System.out.println(httpStatus);

@@ -5,6 +5,7 @@ import com.hazelcast.client.impl.protocol.codec.ReplicatedMapAddEntryListenerCod
 import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.domain.RentedItem;
+import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
@@ -12,6 +13,7 @@ import com.skcc.rental.service.RentalService;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.web.rest.dto.BookInfo;
+import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -217,6 +219,29 @@ public class RentalServiceImpl implements RentalService {
         Rental rental = rentalRepository.findByUserId(userId).get();
         rental=rental.releaseOverdue((long)latefee);
         return rentalRepository.save(rental);
+    }
+
+    @Override
+    public LatefeeDTO createLatefee(Long userId) {
+        Long latefee = rentalRepository.findByUserId(userId).get().getLateFee();
+        LatefeeDTO latefeeDTO = new LatefeeDTO();
+        latefeeDTO.setLatefee(latefee.intValue());
+        latefeeDTO.setUserId(userId);
+        return latefeeDTO;
+    }
+
+    @Override
+    public void updateBookCatalog(String title, String rent_book) throws InterruptedException, ExecutionException, JsonProcessingException {
+        rentalKafkaProducer.updateBookCatalogStatus(title, rent_book);
+    }
+
+    @Override
+    public BookInfo getBookInfoForReturn(Long bookId) {
+        BookInfo bookInfo = new BookInfo();
+        ReturnedItem returnedItem = returnedItemRepository.findByBookId(bookId);
+        bookInfo.setId(returnedItem.getBookId());
+        bookInfo.setTitle(returnedItem.getBookTitle());
+        return bookInfo;
     }
 
 
