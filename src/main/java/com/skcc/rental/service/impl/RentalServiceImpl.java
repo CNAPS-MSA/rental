@@ -1,11 +1,11 @@
 package com.skcc.rental.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.hazelcast.client.impl.protocol.codec.ReplicatedMapAddEntryListenerCodec;
+import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.RentalKafkaProducer;
+import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.domain.RentedItem;
-import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
@@ -19,19 +19,14 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.PrintException;
-import java.awt.print.Book;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.skcc.rental.domain.RentedItem.createRentedItem;
 
 /**
  * Service Implementation for managing {@link Rental}.
@@ -50,14 +45,20 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalKafkaProducer rentalKafkaProducer;
 
+    private final BookClient bookClient;
+
+    private final UserClient userClient;
+
     private int pointPerBooks = 30;
 
     public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository,
-                             RentalKafkaProducer rentalKafkaProducer) {
+                             RentalKafkaProducer rentalKafkaProducer, BookClient bookClient, UserClient userClient) {
         this.rentalRepository = rentalRepository;
         this.rentedItemRepository = rentedItemRepository;
         this.returnedItemRepository = returnedItemRepository;
         this.rentalKafkaProducer = rentalKafkaProducer;
+        this.bookClient = bookClient;
+        this.userClient = userClient;
     }
 
     /**
@@ -118,17 +119,27 @@ public class RentalServiceImpl implements RentalService {
         try{
             Boolean checkRentalStatus = rental.checkRentalAvailable(books.size());
             if(checkRentalStatus){
-            List<RentedItem> rentedItems = books.stream()
-                .map(bookInfo -> RentedItem.createRentedItem(bookInfo.getId(), bookInfo.getTitle(), LocalDate.now()))
-                .collect(Collectors.toList());
+                List<RentedItem> rentedItems = books.stream()
+                    .map(bookInfo -> RentedItem.createRentedItem(bookInfo.getId(), bookInfo.getTitle(), LocalDate.now()))
+                    .collect(Collectors.toList());
 
-            for (RentedItem rentedItem : rentedItems) {
-                rental = rental.rentBook(rentedItem);
+                for (RentedItem rentedItem : rentedItems) {
+                    rental = rental.rentBook(rentedItem);
 
 
-            }
-            rentalRepository.save(rental);
+                }
+                rentalRepository.save(rental);
 
+                books.forEach(b -> {
+                    try {
+                        updateBookStatus(b.getId(), "UNAVAILABLE");
+                        updateBookCatalog(b.getId(), "RENT_BOOK");
+                    } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                savePoints(userId,books.size());
 
             }
 
@@ -159,6 +170,14 @@ public class RentalServiceImpl implements RentalService {
 
             rental = rentalRepository.save(rental);
 
+            bookIds.forEach(b -> {
+                try {
+                    updateBookStatus(b, "AVAILABLE");
+                    updateBookCatalog(b,"RETURN_BOOK");
+                } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            });
             return rental;
         }else{
 
@@ -211,38 +230,40 @@ public class RentalServiceImpl implements RentalService {
         for(OverdueItem overdueItem:overdueItems){
             rental = rental.returnOverdueBook(overdueItem);
         }
+
+        books.forEach(b -> { //책상태 업데이트
+            try {
+                updateBookStatus(b, "AVAILABLE");
+                updateBookCatalog(b,"RETURN_BOOK");
+            } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        });
         return rentalRepository.save(rental);
     }
 
     @Override
-    public Rental releaseOverdue(Long userId, int latefee) {
+    public Rental releaseOverdue(Long userId) {
         Rental rental = rentalRepository.findByUserId(userId).get();
-        rental=rental.releaseOverdue((long)latefee);
+        rental=rental.releaseOverdue(rental.getLateFee());
         return rentalRepository.save(rental);
     }
 
     @Override
-    public LatefeeDTO createLatefee(Long userId) {
+    public ResponseEntity payLatefee(Long userId) {
         Long latefee = rentalRepository.findByUserId(userId).get().getLateFee();
         LatefeeDTO latefeeDTO = new LatefeeDTO();
         latefeeDTO.setLatefee(latefee.intValue());
         latefeeDTO.setUserId(userId);
-        return latefeeDTO;
+        ResponseEntity result = userClient.usePoint(latefeeDTO);
+        return  result;
     }
 
     @Override
-    public void updateBookCatalog(String title, String rent_book) throws InterruptedException, ExecutionException, JsonProcessingException {
-        rentalKafkaProducer.updateBookCatalogStatus(title, rent_book);
+    public void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException {
+        rentalKafkaProducer.updateBookCatalogStatus(bookId, eventType);
     }
 
-    @Override
-    public BookInfo getBookInfoForReturn(Long bookId) {
-        BookInfo bookInfo = new BookInfo();
-        ReturnedItem returnedItem = returnedItemRepository.findByBookId(bookId);
-        bookInfo.setId(returnedItem.getBookId());
-        bookInfo.setTitle(returnedItem.getBookTitle());
-        return bookInfo;
-    }
 
 
 }

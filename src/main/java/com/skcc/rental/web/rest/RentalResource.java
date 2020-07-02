@@ -13,6 +13,7 @@ import com.skcc.rental.web.rest.dto.RentalDTO;
 import com.skcc.rental.web.rest.mapper.RentalMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
+import org.apache.logging.log4j.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -159,22 +160,12 @@ public class RentalResource {
 
         //추후 Exception처리//
         if(rental!=null) {
-            //kafka - 책 상태 업데이트
-            bookInfoList.forEach(b -> {
-                try {
-                    rentalService.updateBookStatus(b.getId(), "UNAVAILABLE");
-                    rentalService.updateBookCatalog(b.getTitle(), "RENT_BOOK");
-                } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            });
-            //kafka - user point 적립
-            rentalService.savePoints(userid,bookInfoList.size());
+
             RentalDTO result = rentalMapper.toDto(rental);
             return ResponseEntity.ok().body(result);
         }else {
 
-            log.debug("대여 불가:");
+            log.debug("대여 할 수 없는 상태입니다.");
 
             return ResponseEntity.badRequest().build();
 
@@ -192,15 +183,7 @@ public class RentalResource {
 
             //추후 Exception처리//
             if(rental!=null) {
-                books.forEach(b -> {
-                    try {
-                        rentalService.updateBookStatus(b, "AVAILABLE");
-                        BookInfo bookInfo = rentalService.getBookInfoForReturn(b);
-                        rentalService.updateBookCatalog(bookInfo.getTitle(),"RETURN_BOOK");
-                    } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
-                });
+
                 RentalDTO result = rentalMapper.toDto(rental);
                 return ResponseEntity.ok().body(result);
             }else {
@@ -228,25 +211,18 @@ public class RentalResource {
     @PutMapping("/returnoverdue/{userid}/{books}")
     public ResponseEntity returnOverdueBooks(@PathVariable("userid")Long userid, @PathVariable("books")List<Long> books){
         Rental rental = rentalService.returnOverdueBooks(userid, books);
-        books.forEach(b -> { //책상태 업데이트
-            try {
-                rentalService.updateBookStatus(b, "AVAILABLE");
-            } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        });
+
         RentalDTO result = rentalMapper.toDto(rental);
         return ResponseEntity.ok().body(result);
     }
 
     @PutMapping("/releaseoverdue/{userId}")
     public ResponseEntity releaseOverdue(@PathVariable("userId")Long userId){
-        LatefeeDTO latefeeDTO = rentalService.createLatefee(userId);
-        ResponseEntity result = userClient.usePoint(latefeeDTO);
+        ResponseEntity result = rentalService.payLatefee(userId);
         HttpStatus httpStatus = result.getStatusCode();
         System.out.println(httpStatus);
         if(httpStatus.equals(HttpStatus.OK)){
-            RentalDTO rentalDTO = rentalMapper.toDto(rentalService.releaseOverdue(latefeeDTO.getUserId(), latefeeDTO.getLatefee()));
+            RentalDTO rentalDTO = rentalMapper.toDto(rentalService.releaseOverdue(userId));
             return ResponseEntity.ok().body(rentalDTO);
         }else{
             return ResponseEntity.badRequest().build();
