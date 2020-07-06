@@ -1,11 +1,15 @@
 package com.skcc.rental.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.bytebuddy.asm.Advice;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
+import javax.persistence.criteria.Predicate;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,6 +21,8 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "returned_item")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Data
+@ToString
 public class ReturnedItem implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -46,30 +52,10 @@ public class ReturnedItem implements Serializable {
         return returnedItem;
     }
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getBookId() {
-        return bookId;
-    }
-
     public ReturnedItem bookId(Long bookId) {
         this.bookId = bookId;
         return this;
-    }
 
-    public void setBookId(Long bookId) {
-        this.bookId = bookId;
-    }
-
-    public LocalDate getReturnedDate() {
-        return returnedDate;
     }
 
     public ReturnedItem returnedDate(LocalDate returnedDate) {
@@ -77,35 +63,18 @@ public class ReturnedItem implements Serializable {
         return this;
     }
 
-    public void setReturnedDate(LocalDate returnedDate) {
-        this.returnedDate = returnedDate;
-    }
-
-    public String getBookTitle() {
-        return bookTitle;
-    }
-
     public ReturnedItem bookTitle(String bookTitle) {
         this.bookTitle = bookTitle;
         return this;
     }
 
-    public void setBookTitle(String bookTitle) {
-        this.bookTitle = bookTitle;
-    }
-
-    public Rental getRental() {
-        return rental;
-    }
+    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
     public ReturnedItem rental(Rental rental) {
         this.rental = rental;
         return this;
     }
 
-    public void setRental(Rental rental) {
-        this.rental = rental;
-    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -122,15 +91,5 @@ public class ReturnedItem implements Serializable {
     @Override
     public int hashCode() {
         return 31;
-    }
-
-    @Override
-    public String toString() {
-        return "ReturnedItem{" +
-            "id=" + getId() +
-            ", bookId=" + getBookId() +
-            ", returnedDate='" + getReturnedDate() + "'" +
-            ", bookTitle='" + getBookTitle() + "'" +
-            "}";
     }
 }

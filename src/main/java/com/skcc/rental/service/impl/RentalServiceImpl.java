@@ -209,7 +209,7 @@ public class RentalServiceImpl implements RentalService {
                 rental = rental.overdueBook(rentedItem);
             }
             rental.setRentalStatus(RentalStatus.RENT_UNAVAILABLE);
-            rental.setLateFee(rental.getLateFee()+(long)30); //연체시 연체비 30포인트 누적
+            rental.setLateFee(rental.getLateFee()+30); //연체시 연체비 30포인트 누적
             return rentalRepository.save(rental);
         }else{
             return null;
@@ -251,9 +251,9 @@ public class RentalServiceImpl implements RentalService {
 
     @Override
     public ResponseEntity payLatefee(Long userId) {
-        Long latefee = rentalRepository.findByUserId(userId).get().getLateFee();
+        int latefee = rentalRepository.findByUserId(userId).get().getLateFee();
         LatefeeDTO latefeeDTO = new LatefeeDTO();
-        latefeeDTO.setLatefee(latefee.intValue());
+        latefeeDTO.setLatefee(latefee);
         latefeeDTO.setUserId(userId);
         ResponseEntity result = userClient.usePoint(latefeeDTO);
         return  result;

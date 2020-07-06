@@ -1,6 +1,7 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.RentalApp;
+import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.ReturnedItemService;

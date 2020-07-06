@@ -1,5 +1,8 @@
 package com.skcc.rental.domain;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -20,6 +23,7 @@ import com.skcc.rental.domain.enumeration.RentalStatus;
 @Entity
 @Table(name = "rental")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Data
 public class Rental implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -36,7 +40,7 @@ public class Rental implements Serializable {
     private RentalStatus rentalStatus;
 
     @Column(name = "late_fee")
-    private Long lateFee;
+    private int lateFee;
 
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -68,44 +72,11 @@ public class Rental implements Serializable {
         return this;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public RentalStatus getRentalStatus() {
-        return rentalStatus;
-    }
-
-    public Rental rentalStatus(RentalStatus rentalStatus) {
+    public Rental rentalStatus(RentalStatus rentalStatus){
         this.rentalStatus = rentalStatus;
-        return this;
+        return  this;
     }
 
-    public void setRentalStatus(RentalStatus rentalStatus) {
-        this.rentalStatus = rentalStatus;
-    }
-
-    public Long getLateFee() {
-        return lateFee;
-    }
-
-    public Rental lateFee(Long lateFee) {
-        this.lateFee = lateFee;
-        return this;
-    }
-
-    public void setLateFee(Long lateFee) {
-        this.lateFee = lateFee;
-    }
-
-    public Set<RentedItem> getRentedItems() {
-        return rentedItems;
-    }
-
-    public Rental rentedItems(Set<RentedItem> rentedItems) {
-        this.rentedItems = rentedItems;
-        return this;
-    }
 
     public Rental addRentedItem(RentedItem rentedItem) {
         this.rentedItems.add(rentedItem);
@@ -119,24 +90,12 @@ public class Rental implements Serializable {
         return this;
     }
 
-    public void setRentedItems(Set<RentedItem> rentedItems) {
-        this.rentedItems = rentedItems;
-    }
-
-    public Set<OverdueItem> getOverdueItems() {
-        return overdueItems;
-    }
-
-    public Rental overdueItems(Set<OverdueItem> overdueItems) {
-        this.overdueItems = overdueItems;
-        return this;
-    }
-
     public Rental addOverdueItem(OverdueItem overdueItem) {
         this.overdueItems.add(overdueItem);
         overdueItem.setRental(this);
         return this;
     }
+
 
     public Rental removeOverdueItem(OverdueItem overdueItem) {
         this.overdueItems.remove(overdueItem);
@@ -144,34 +103,19 @@ public class Rental implements Serializable {
         return this;
     }
 
-    public void setOverdueItems(Set<OverdueItem> overdueItems) {
-        this.overdueItems = overdueItems;
-    }
 
-    public Set<ReturnedItem> getReturnedItems() {
-        return returnedItems;
-    }
-
-    public Rental returnedItems(Set<ReturnedItem> returnedItems) {
-        this.returnedItems = returnedItems;
-        return this;
-    }
 
     public Rental addReturnedItem(ReturnedItem returnedItem) {
         this.returnedItems.add(returnedItem);
         returnedItem.setRental(this);
         return this;
     }
-
     public Rental removeReturnedItem(ReturnedItem returnedItem) {
         this.returnedItems.remove(returnedItem);
         returnedItem.setRental(null);
         return this;
     }
 
-    public void setReturnedItems(Set<ReturnedItem> returnedItems) {
-        this.returnedItems = returnedItems;
-    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
@@ -210,7 +154,7 @@ public class Rental implements Serializable {
         rental.setUserId(userId);
         //대여 가능하게 상태 변경
         rental.setRentalStatus(RentalStatus.RENT_AVAILABLE);
-        rental.setLateFee((long)0);
+        rental.setLateFee(0);
         return rental;
     }
 
@@ -249,7 +193,7 @@ public class Rental implements Serializable {
     }
 
     //연체 상태 해제//
-    public Rental releaseOverdue(Long lateFee){
+    public Rental releaseOverdue(int lateFee){
         this.setLateFee(this.lateFee-lateFee);
         this.setRentalStatus(RentalStatus.RENT_AVAILABLE);
         return this;
@@ -264,4 +208,9 @@ public class Rental implements Serializable {
         return true;
     }
 
+
+    public Rental lateFee(int lateFee) {
+        this.lateFee = lateFee;
+        return this;
+    }
 }
