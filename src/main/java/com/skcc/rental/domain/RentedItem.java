@@ -1,6 +1,9 @@
 package com.skcc.rental.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -16,6 +19,8 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "rented_item")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Data
+@ToString
 public class RentedItem implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -50,80 +55,24 @@ public class RentedItem implements Serializable {
 
     }
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getBookId() {
-        return bookId;
-    }
-
     public RentedItem bookId(Long bookId) {
         this.bookId = bookId;
         return this;
-    }
-
-    public void setBookId(Long bookId) {
-        this.bookId = bookId;
-    }
-
-    public LocalDate getRentedDate() {
-        return rentedDate;
     }
 
     public RentedItem rentedDate(LocalDate rentedDate) {
         this.rentedDate = rentedDate;
         return this;
     }
-
-    public void setRentedDate(LocalDate rentedDate) {
-        this.rentedDate = rentedDate;
+    public RentedItem bookTitle(String bookTitle) {
+        this.bookTitle= bookTitle;
+        return this;
     }
-
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
     public RentedItem dueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
         return this;
     }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public String getBookTitle() {
-        return bookTitle;
-    }
-
-    public RentedItem bookTitle(String bookTitle) {
-        this.bookTitle = bookTitle;
-        return this;
-    }
-
-    public void setBookTitle(String bookTitle) {
-        this.bookTitle = bookTitle;
-    }
-
-    public Rental getRental() {
-        return rental;
-    }
-
-    public RentedItem rental(Rental rental) {
-        this.rental = rental;
-        return this;
-    }
-
-    public void setRental(Rental rental) {
-        this.rental = rental;
-    }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
     @Override
     public boolean equals(Object o) {
@@ -141,14 +90,4 @@ public class RentedItem implements Serializable {
         return 31;
     }
 
-    @Override
-    public String toString() {
-        return "RentedItem{" +
-            "id=" + getId() +
-            ", bookId=" + getBookId() +
-            ", rentedDate='" + getRentedDate() + "'" +
-            ", dueDate='" + getDueDate() + "'" +
-            ", bookTitle='" + getBookTitle() + "'" +
-            "}";
-    }
 }

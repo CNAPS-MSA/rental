@@ -76,9 +76,9 @@ public class RentalKafkaProducer {
     }
 
     //대여, 반납  시 book catalog의 책 상태 업데이트
-    public PublishResult updateBookCatalogStatus(String bookTitle, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
+    public PublishResult updateBookCatalogStatus(Long bookId, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
         BookCatalogEvent bookCatalogEvent = new BookCatalogEvent();
-        bookCatalogEvent.setTitle(bookTitle);
+        bookCatalogEvent.setBookId(bookId);
         bookCatalogEvent.setEventType(eventType);
         String message = objectMapper.writeValueAsString(bookCatalogEvent);
         RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_CATALOG, message)).get();

@@ -7,6 +7,7 @@ import com.skcc.rental.web.rest.dto.BookInfo;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -76,11 +77,11 @@ public interface RentalService {
 
     Rental returnOverdueBooks(Long userid, List<Long> books);
 
-    Rental releaseOverdue(Long userId, int latefee);
+    Rental releaseOverdue(Long userId);
 
-    LatefeeDTO createLatefee(Long userId);
+    ResponseEntity payLatefee(Long userId);
 
-    void updateBookCatalog(String title, String rent_book) throws InterruptedException, ExecutionException, JsonProcessingException;
+    void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
 
-    BookInfo getBookInfoForReturn(Long b);
+    //ResponseEntity usePoint
 }
