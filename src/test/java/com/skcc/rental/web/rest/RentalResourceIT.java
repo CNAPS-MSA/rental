@@ -41,8 +41,8 @@ public class RentalResourceIT {
     private static final RentalStatus DEFAULT_RENTAL_STATUS = RentalStatus.RENT_AVAILABLE;
     private static final RentalStatus UPDATED_RENTAL_STATUS = RentalStatus.RENT_UNAVAILABLE;
 
-    private static final Long DEFAULT_LATE_FEE = 1L;
-    private static final Long UPDATED_LATE_FEE = 2L;
+    private static final int DEFAULT_LATE_FEE = 1;
+    private static final int UPDATED_LATE_FEE = 2;
 
     @Autowired
     private RentalRepository rentalRepository;
@@ -151,7 +151,7 @@ public class RentalResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(rental.getId().intValue())))
             .andExpect(jsonPath("$.[*].userId").value(hasItem(DEFAULT_USER_ID.intValue())))
             .andExpect(jsonPath("$.[*].rentalStatus").value(hasItem(DEFAULT_RENTAL_STATUS.toString())))
-            .andExpect(jsonPath("$.[*].lateFee").value(hasItem(DEFAULT_LATE_FEE.intValue())));
+            .andExpect(jsonPath("$.[*].lateFee").value(hasItem(DEFAULT_LATE_FEE)));
     }
 
     @Test
@@ -167,7 +167,7 @@ public class RentalResourceIT {
             .andExpect(jsonPath("$.id").value(rental.getId().intValue()))
             .andExpect(jsonPath("$.userId").value(DEFAULT_USER_ID.intValue()))
             .andExpect(jsonPath("$.rentalStatus").value(DEFAULT_RENTAL_STATUS.toString()))
-            .andExpect(jsonPath("$.lateFee").value(DEFAULT_LATE_FEE.intValue()));
+            .andExpect(jsonPath("$.lateFee").value(DEFAULT_LATE_FEE));
     }
 
     @Test
