@@ -152,6 +152,7 @@ public class RentalResource {
     @PostMapping("/rental/user/{userid}/books/{books}")
     public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
+
         ResponseEntity<List<BookInfo>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
         List<BookInfo> bookInfoList = bookInfoResult.getBody();
         log.debug("book info list",bookInfoList.toString());
@@ -172,6 +173,7 @@ public class RentalResource {
         }
 
     }
+
 
     @PutMapping("/return/user/{userid}/books/{books}")
     public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) {
