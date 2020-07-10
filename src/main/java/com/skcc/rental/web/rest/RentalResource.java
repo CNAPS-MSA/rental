@@ -149,7 +149,7 @@ public class RentalResource {
     *
     *
     **/
-    @PostMapping("/rentals/{userid}/{books}")
+    @PostMapping("/rental/user/{userid}/books/{books}")
     public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
 
@@ -174,7 +174,8 @@ public class RentalResource {
 
     }
 
-    @PutMapping("/rentals/{userid}/{books}")
+
+    @PutMapping("/return/user/{userid}/books/{books}")
     public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) {
 
 
@@ -194,7 +195,7 @@ public class RentalResource {
 
     }
 
-    @PutMapping("/setoverdue/{userid}/{books}")
+    @PutMapping("/overdue/user/{userid}/books/{books}")
     public ResponseEntity setOverdue(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books){
         Rental rental = rentalService.overdueBooks(userid, books);
         log.debug("overdue Books");
@@ -209,7 +210,7 @@ public class RentalResource {
         }
     }
 
-    @PutMapping("/returnoverdue/{userid}/{books}")
+    @PutMapping("/return-overdue/user/{userid}/books/{books}")
     public ResponseEntity returnOverdueBooks(@PathVariable("userid")Long userid, @PathVariable("books")List<Long> books){
         Rental rental = rentalService.returnOverdueBooks(userid, books);
 
@@ -217,7 +218,7 @@ public class RentalResource {
         return ResponseEntity.ok().body(result);
     }
 
-    @PutMapping("/releaseoverdue/{userId}")
+    @PutMapping("/release-overdue/user/{userId}")
     public ResponseEntity releaseOverdue(@PathVariable("userId")Long userId){
         ResponseEntity result = rentalService.payLatefee(userId);
         HttpStatus httpStatus = result.getStatusCode();
