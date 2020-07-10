@@ -1,21 +1,15 @@
 package com.skcc.rental.domain;
 
+import com.skcc.rental.domain.enumeration.RentalStatus;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
-
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Objects;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.skcc.rental.domain.enumeration.RentalStatus;
 
 /**
  * A Rental.
@@ -149,7 +143,7 @@ public class Rental implements Serializable {
      * @param userId
      * @return
      */
-    public static Rental createRental(Long userId){
+    public static Rental createRental(Long userId) {
         Rental rental = new Rental();
         rental.setUserId(userId);
         //대여 가능하게 상태 변경
@@ -158,43 +152,61 @@ public class Rental implements Serializable {
         return rental;
     }
 
-    //대여하기 메소드//
-    public Rental rentBook(RentedItem rentedItem){
-        //현재 대여목록 갯수와 대여할 도서 갯수 파악
 
-        this.addRentedItem(rentedItem);
-
+    /**
+     * 대여하기
+     *
+     * @param bookid
+     * @param title
+     * @return
+     */
+    public Rental rentBook(Long bookid, String title) {
+        this.addRentedItem(RentedItem.createRentedItem(bookid, title, LocalDate.now()));
         return this;
     }
 
-    //반납 하기//
-    public Rental returnbook(RentedItem rentedItem) {
-
-        this.removeRentedItem(rentedItem);
+    /**
+     * 반납하기
+     *
+     * @param bookId
+     * @return
+     */
+    public Rental returnbook(Long bookId) {
+        RentedItem rentedItem = this.rentedItems.stream().filter(item -> item.getBookId().equals(bookId)).findFirst().get();
         this.addReturnedItem(ReturnedItem.createReturnedItem(rentedItem.getBookId(), rentedItem.getBookTitle(), LocalDate.now()));
-        return this;
-
-    }
-
-    //연체//
-    public Rental overdueBook(RentedItem rentedItem)
-    {
         this.removeRentedItem(rentedItem);
-        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(),rentedItem.getBookTitle(),rentedItem.getDueDate()));
         return this;
     }
 
-    //연체된 책 반납  //
-    public Rental returnOverdueBook(OverdueItem overdueItem)
-    {
+    /**
+     * 연체처리
+     *
+     * @param bookId
+     * @return
+     */
+    public Rental overdueBook(Long bookId) {
+        RentedItem rentedItem = this.rentedItems.stream().filter(item -> item.getBookId().equals(bookId)).findFirst().get();
+        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(), rentedItem.getBookTitle(), rentedItem.getDueDate()));
+        this.removeRentedItem(rentedItem);
+        return this;
+    }
+
+    /**
+     * 연체된 책 반납
+     *
+     * @param bookId
+     * @return
+     */
+    public Rental returnOverdueBook(Long bookId) {
+        OverdueItem overdueItem = this.overdueItems.stream().filter(item -> item.getBookId().equals(bookId)).findFirst().get();
+        this.addReturnedItem(ReturnedItem.createReturnedItem(overdueItem.getBookId(), overdueItem.getBookTitle(), LocalDate.now()));
         this.removeOverdueItem(overdueItem);
-        this.addReturnedItem(ReturnedItem.createReturnedItem(overdueItem.getBookId(),overdueItem.getBookTitle(),LocalDate.now()));
         return this;
     }
 
     //연체 상태 해제//
-    public Rental releaseOverdue(int lateFee){
-        this.setLateFee(this.lateFee-lateFee);
+    public Rental releaseOverdue(int lateFee) {
+        this.setLateFee(this.lateFee - lateFee);
         this.setRentalStatus(RentalStatus.RENT_AVAILABLE);
         return this;
     }
