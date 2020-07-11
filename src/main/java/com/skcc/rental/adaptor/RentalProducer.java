@@ -3,30 +3,25 @@ package com.skcc.rental.adaptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
-import com.skcc.rental.domain.BookCatalogEvent;
-import com.skcc.rental.domain.SavePointsEvent;
-import com.skcc.rental.domain.UpdateBookEvent;
-import com.skcc.rental.web.rest.RentalKafkaResource;
+import com.skcc.rental.domain.BookCatalogChanged;
+import com.skcc.rental.domain.PointChanged;
+import com.skcc.rental.domain.StockChanged;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.internals.Topic;
-import org.apache.kafka.common.record.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.awt.print.Book;
 import java.time.Instant;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
-public class RentalKafkaProducer {
+public class RentalProducer {
 
-    private final Logger log = LoggerFactory.getLogger(RentalKafkaProducer.class);
+    private final Logger log = LoggerFactory.getLogger(RentalProducer.class);
 
     private static final String TOPIC_BOOK = "topic_book";
     private static final String TOPIC_CATALOG = "topic_catalog";
@@ -34,12 +29,12 @@ public class RentalKafkaProducer {
 
     private final KafkaProperties kafkaProperties;
 
-    private final static Logger logger = LoggerFactory.getLogger(RentalKafkaProducer.class);
+    private final static Logger logger = LoggerFactory.getLogger(RentalProducer.class);
     private KafkaProducer<String, String> producer;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public RentalKafkaProducer(KafkaProperties kafkaProperties) {
+    public RentalProducer(KafkaProperties kafkaProperties) {
         this.kafkaProperties = kafkaProperties;
     }
 
@@ -58,29 +53,29 @@ public class RentalKafkaProducer {
      * *******/
 
     //책 상태 업데이트
-    public PublishResult updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException{
+    public PublishResult updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {
 
-        UpdateBookEvent updateBookEvent = new UpdateBookEvent(bookId, bookStatus);
-        String message = objectMapper.writeValueAsString(updateBookEvent);
+        StockChanged stockChanged = new StockChanged(bookId, bookStatus);
+        String message = objectMapper.writeValueAsString(stockChanged);
         RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_BOOK, message)).get();
         return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
 
     }
 
     // 권당 포인트 적립
-    public PublishResult savePoints(Long userId, int points) throws ExecutionException, InterruptedException, JsonProcessingException{
-        SavePointsEvent savePointsEvent = new SavePointsEvent(userId, points);
-        String message = objectMapper.writeValueAsString(savePointsEvent);
+    public PublishResult savePoints(Long userId, int points) throws ExecutionException, InterruptedException, JsonProcessingException {
+        PointChanged pointChanged = new PointChanged(userId, points);
+        String message = objectMapper.writeValueAsString(pointChanged);
         RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_POINT, message)).get();
         return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
     }
 
     //대여, 반납  시 book catalog의 책 상태 업데이트
     public PublishResult updateBookCatalogStatus(Long bookId, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
-        BookCatalogEvent bookCatalogEvent = new BookCatalogEvent();
-        bookCatalogEvent.setBookId(bookId);
-        bookCatalogEvent.setEventType(eventType);
-        String message = objectMapper.writeValueAsString(bookCatalogEvent);
+        BookCatalogChanged bookCatalogChanged = new BookCatalogChanged();
+        bookCatalogChanged.setBookId(bookId);
+        bookCatalogChanged.setEventType(eventType);
+        String message = objectMapper.writeValueAsString(bookCatalogChanged);
         RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_CATALOG, message)).get();
         return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
     }

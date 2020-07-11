@@ -7,9 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UpdateBookEvent {
+public class PointChanged {
 
-    private Long bookId;
-    private String bookStatus;
+    Long userId;
+    int points;
+
 
 }

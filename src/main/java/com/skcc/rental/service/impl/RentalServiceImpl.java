@@ -2,9 +2,10 @@ package com.skcc.rental.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.adaptor.BookClient;
-import com.skcc.rental.adaptor.RentalKafkaProducer;
+import com.skcc.rental.adaptor.RentalProducer;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
+import com.skcc.rental.domain.UserIdCreated;
 import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.repository.RentedItemRepository;
@@ -39,7 +40,7 @@ public class RentalServiceImpl implements RentalService {
 
     private final ReturnedItemRepository returnedItemRepository;
 
-    private final RentalKafkaProducer rentalKafkaProducer;
+    private final RentalProducer rentalProducer;
 
     private final BookClient bookClient;
 
@@ -48,11 +49,11 @@ public class RentalServiceImpl implements RentalService {
     private int pointPerBooks = 30;
 
     public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository,
-                             RentalKafkaProducer rentalKafkaProducer, BookClient bookClient, UserClient userClient) {
+                             RentalProducer rentalProducer, BookClient bookClient, UserClient userClient) {
         this.rentalRepository = rentalRepository;
         this.rentedItemRepository = rentedItemRepository;
         this.returnedItemRepository = returnedItemRepository;
-        this.rentalKafkaProducer = rentalKafkaProducer;
+        this.rentalProducer = rentalProducer;
         this.bookClient = bookClient;
         this.userClient = userClient;
     }
@@ -106,6 +107,11 @@ public class RentalServiceImpl implements RentalService {
         rentalRepository.deleteById(id);
     }
 
+    public Rental createRental(UserIdCreated userIdCreated) {
+        Rental rental = Rental.createRental(userIdCreated.getUserId());
+        rentalRepository.save(rental);
+        return rental;
+    }
 
     /**
      * 여러권 대여하기
@@ -233,17 +239,17 @@ public class RentalServiceImpl implements RentalService {
 
     @Override
     public void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {
-        rentalKafkaProducer.updateBookStatus(bookId, bookStatus);
+        rentalProducer.updateBookStatus(bookId, bookStatus);
     }
 
     @Override
     public void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException {
-        rentalKafkaProducer.savePoints(userId, bookCnt * pointPerBooks);
+        rentalProducer.savePoints(userId, bookCnt * pointPerBooks);
     }
 
     @Override
     public void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException {
-        rentalKafkaProducer.updateBookCatalogStatus(bookId, eventType);
+        rentalProducer.updateBookCatalogStatus(bookId, eventType);
     }
 
 

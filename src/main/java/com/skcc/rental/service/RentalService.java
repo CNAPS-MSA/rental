@@ -2,9 +2,8 @@ package com.skcc.rental.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
-
+import com.skcc.rental.domain.UserIdCreated;
 import com.skcc.rental.web.rest.dto.BookInfo;
-import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +48,7 @@ public interface RentalService {
      */
     void delete(Long id);
 
+    Rental createRental(UserIdCreated userIdCreated);
 
     /****
      *

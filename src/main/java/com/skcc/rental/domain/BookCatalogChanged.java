@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class BookCatalogEvent {
+public class BookCatalogChanged {
 
     private String title;
 
