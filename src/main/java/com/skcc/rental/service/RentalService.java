@@ -2,8 +2,8 @@ package com.skcc.rental.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
-import com.skcc.rental.domain.UserIdCreated;
-import com.skcc.rental.web.rest.dto.BookInfo;
+import com.skcc.rental.domain.event.UserIdCreated;
+import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +57,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    Rental rentBooks(Long userId, List<BookInfo> books);
+    Rental rentBooks(Long userId, List<BookInfoDTO> books);
 
     /****
      *

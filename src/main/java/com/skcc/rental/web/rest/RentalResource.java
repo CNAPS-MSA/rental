@@ -5,7 +5,7 @@ import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
-import com.skcc.rental.web.rest.dto.BookInfo;
+import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.RentalDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.mapper.RentalMapper;
@@ -142,7 +142,6 @@ public class RentalResource {
 
     /**
      * 도서 대여 하기
-     *
      * @param userid
      * @param books
      * @return
@@ -154,11 +153,11 @@ public class RentalResource {
     public ResponseEntity rentBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
 
-        ResponseEntity<List<BookInfo>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
-        List<BookInfo> bookInfoList = bookInfoResult.getBody();
-        log.debug("book info list", bookInfoList.toString());
+        ResponseEntity<List<BookInfoDTO>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
+        List<BookInfoDTO> bookInfoDTOList = bookInfoResult.getBody();
+        log.debug("book info list", bookInfoDTOList.toString());
 
-        Rental rental = rentalService.rentBooks(userid, bookInfoList);
+        Rental rental = rentalService.rentBooks(userid, bookInfoDTOList);
 
         if (rental != null) {
             RentalDTO result = rentalMapper.toDto(rental);

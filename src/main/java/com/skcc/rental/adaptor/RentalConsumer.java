@@ -3,7 +3,7 @@ package com.skcc.rental.adaptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
 import com.skcc.rental.domain.Rental;
-import com.skcc.rental.domain.UserIdCreated;
+import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.service.RentalService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;

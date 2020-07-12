@@ -5,13 +5,12 @@ import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.RentalProducer;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
-import com.skcc.rental.domain.UserIdCreated;
-import com.skcc.rental.domain.enumeration.RentalStatus;
+import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.RentalService;
-import com.skcc.rental.web.rest.dto.BookInfo;
+import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +120,7 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Transactional
-    public Rental rentBooks(Long userId, List<BookInfo> books) {
+    public Rental rentBooks(Long userId, List<BookInfoDTO> books) {
         log.debug("Rent Books by : ", userId, " Book List : ", books);
         Rental rental = rentalRepository.findByUserId(userId).get();
         try {
@@ -188,11 +187,10 @@ public class RentalServiceImpl implements RentalService {
         Rental rental = rentalRepository.findByUserId(userId).get();
 
         books.forEach(bookid -> rental.overdueBook(bookid));
-
-        rental.setRentalStatus(RentalStatus.RENT_UNAVAILABLE);
-        rental.setLateFee(rental.getLateFee() + 30); //연체시 연체비 30포인트 누적
+        rental.makeRentUnable();
         return rentalRepository.save(rental);
     }
+
 
     /**
      * 연체된 책 반납하기 (여러권)

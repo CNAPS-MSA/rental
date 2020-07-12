@@ -1,4 +1,4 @@
-package com.skcc.rental.domain;
+package com.skcc.rental.domain.event;
 
 import lombok.Getter;
 import lombok.Setter;

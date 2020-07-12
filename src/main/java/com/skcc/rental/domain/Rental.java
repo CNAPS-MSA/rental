@@ -139,6 +139,7 @@ public class Rental implements Serializable {
     }
     //최초 대여 시//
     /**
+     * 대여카드 생성
      *
      * @param userId
      * @return
@@ -152,6 +153,15 @@ public class Rental implements Serializable {
         return rental;
     }
 
+    /**
+     * 대여 불가 처리
+     *
+     * @return
+     */
+    public void makeRentUnable() {
+        this.setRentalStatus(RentalStatus.RENT_UNAVAILABLE);
+        this.setLateFee(this.getLateFee() + 30); //연체시 연체비 30포인트 누적
+    }
 
     /**
      * 대여하기
@@ -198,7 +208,8 @@ public class Rental implements Serializable {
      * @return
      */
     public Rental returnOverdueBook(Long bookId) {
-        OverdueItem overdueItem = this.overdueItems.stream().filter(item -> item.getBookId().equals(bookId)).findFirst().get();
+        OverdueItem overdueItem = this.overdueItems
+            .stream().filter(item -> item.getBookId().equals(bookId)).findFirst().get();
         this.addReturnedItem(ReturnedItem.createReturnedItem(overdueItem.getBookId(), overdueItem.getBookTitle(), LocalDate.now()));
         this.removeOverdueItem(overdueItem);
         return this;
