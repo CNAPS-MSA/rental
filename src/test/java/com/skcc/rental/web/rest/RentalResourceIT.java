@@ -1,13 +1,13 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.RentalApp;
+import com.skcc.rental.adaptor.RentalProducer;
 import com.skcc.rental.domain.Rental;
+import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentalRepository;
-import com.skcc.rental.adaptor.RentalKafkaProducer;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.RentalDTO;
 import com.skcc.rental.web.rest.mapper.RentalMapper;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.EntityManager;
 import java.util.List;
 
@@ -24,8 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import com.skcc.rental.domain.enumeration.RentalStatus;
 /**
  * Integration tests for the {@link RentalResource} REST controller.
  */
@@ -60,7 +59,7 @@ public class RentalResourceIT {
     private MockMvc restRentalMockMvc;
 
     @Autowired
-    private RentalKafkaProducer rentalKafkaProducer;
+    private RentalProducer rentalProducer;
 
     private Rental rental;
 

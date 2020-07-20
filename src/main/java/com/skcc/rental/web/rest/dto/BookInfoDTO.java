@@ -7,10 +7,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class BookInfo implements Serializable {
+public class BookInfoDTO implements Serializable {
     private Long id;
-
     private String title;
-
-
 }

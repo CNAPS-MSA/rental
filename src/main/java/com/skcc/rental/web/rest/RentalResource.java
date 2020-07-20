@@ -5,15 +5,12 @@ import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
-import com.skcc.rental.web.rest.dto.BookInfo;
-import com.skcc.rental.web.rest.dto.LatefeeDTO;
-import com.skcc.rental.web.rest.errors.BadRequestAlertException;
+import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.RentalDTO;
-
+import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.mapper.RentalMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
-import org.apache.logging.log4j.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +19,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -144,82 +141,96 @@ public class RentalResource {
 
 
     /**
-    *
-    * rent books
-    *
-    *
-    **/
-    @PostMapping("/rental/user/{userid}/books/{books}")
-    public ResponseEntity rentBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
+     * 도서 대여 하기
+     * @param userid
+     * @param books
+     * @return
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws JsonProcessingException
+     */
+    @PostMapping("/rentals/{userid}/RentedItem/{books}")
+    public ResponseEntity rentBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
 
-        ResponseEntity<List<BookInfo>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
-        List<BookInfo> bookInfoList = bookInfoResult.getBody();
-        log.debug("book info list",bookInfoList.toString());
+        ResponseEntity<List<BookInfoDTO>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
+        List<BookInfoDTO> bookInfoDTOList = bookInfoResult.getBody();
+        log.debug("book info list", bookInfoDTOList.toString());
 
-        Rental rental = rentalService.rentBooks(userid, bookInfoList);
+        Rental rental = rentalService.rentBooks(userid, bookInfoDTOList);
 
-        //추후 Exception처리//
-        if(rental!=null) {
-
+        if (rental != null) {
             RentalDTO result = rentalMapper.toDto(rental);
             return ResponseEntity.ok().body(result);
-        }else {
-
+        } else {
             log.debug("대여 할 수 없는 상태입니다.");
-
             return ResponseEntity.badRequest().build();
-
         }
-
     }
 
 
-    @PutMapping("/return/user/{userid}/books/{books}")
-    public ResponseEntity returnBooks(@PathVariable("userid")Long userid, @PathVariable("books") List<Long> books) {
+    /**
+     * 도서 반납 하기
+     *
+     * @param userid
+     * @param books
+     * @return
+     */
+    @DeleteMapping("/rentals/{userid}/RentedItem/{books}")
+    public ResponseEntity returnBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
 
+        Rental rental = rentalService.returnBooks(userid, books);
+        log.debug("returned books");
+        log.debug("SEND BOOKIDS for Book: {}", books);
 
-            Rental rental=rentalService.returnBooks(userid,books);
-            log.debug("returned books");
-            log.debug("SEND BOOKIDS for Book: {}", books);
-
-            //추후 Exception처리//
-            if(rental!=null) {
-
-                RentalDTO result = rentalMapper.toDto(rental);
-                return ResponseEntity.ok().body(result);
-            }else {
-                log.debug("대여기록에 없는 도서입니다.");
-                return ResponseEntity.badRequest().build();
-            }
-
+        if (rental != null) {
+            RentalDTO result = rentalMapper.toDto(rental);
+            return ResponseEntity.ok().body(result);
+        } else {
+            log.debug("대여 기록이 없는 도서입니다.");
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @PutMapping("/overdue/user/{userid}/books/{books}")
-    public ResponseEntity setOverdue(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books){
+    /**
+     * 도서 연체처리 하기
+     *
+     * @param userid
+     * @param books
+     * @return
+     */
+    @PostMapping("/rentals/{userid}/OverdueItem/{books}")
+    public ResponseEntity BeOverdue(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
         Rental rental = rentalService.overdueBooks(userid, books);
         log.debug("overdue Books");
 
-        //추후 Exception처리//
-        if(rental!=null) {
+        if (rental != null) {
             RentalDTO result = rentalMapper.toDto(rental);
             return ResponseEntity.ok().body(result);
-        }else {
-            log.debug("대여기록에 없는 도서입니다.");
+        } else {
+            log.debug("대여 기록이 없는 도서입니다.");
             return ResponseEntity.badRequest().build();
         }
     }
 
-    @PutMapping("/return-overdue/user/{userid}/books/{books}")
-    public ResponseEntity returnOverdueBooks(@PathVariable("userid")Long userid, @PathVariable("books")List<Long> books){
+    /**
+     * 연체도서 반납하기
+     *
+     * @param userid
+     * @param books
+     * @return
+     */
+    @DeleteMapping("/rentals/{userid}/OverdueItem/{books}")
+    public ResponseEntity returnOverdueBook(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
         Rental rental = rentalService.returnOverdueBooks(userid, books);
 
         RentalDTO result = rentalMapper.toDto(rental);
         return ResponseEntity.ok().body(result);
     }
 
+
     @PutMapping("/release-overdue/user/{userId}")
-    public ResponseEntity releaseOverdue(@PathVariable("userId")Long userId){
+    public ResponseEntity releaseOverdue(@PathVariable("userId") Long userId) {
         ResponseEntity result = rentalService.payLatefee(userId);
         HttpStatus httpStatus = result.getStatusCode();
         System.out.println(httpStatus);

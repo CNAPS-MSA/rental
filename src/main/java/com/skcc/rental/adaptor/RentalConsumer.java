@@ -2,9 +2,9 @@ package com.skcc.rental.adaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
-import com.skcc.rental.domain.CreateRentalEvent;
 import com.skcc.rental.domain.Rental;
-import com.skcc.rental.repository.RentalRepository;
+import com.skcc.rental.domain.event.UserIdCreated;
+import com.skcc.rental.service.RentalService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -21,25 +21,25 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
-public class RentalKafkaConsumer {
-    private final Logger log = LoggerFactory.getLogger(RentalKafkaConsumer.class);
+public class RentalConsumer {
+    private final Logger log = LoggerFactory.getLogger(RentalConsumer.class);
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public static final String TOPIC ="topic_rental";
+    public static final String TOPIC = "topic_rental";
 
     private final KafkaProperties kafkaProperties;
 
     private KafkaConsumer<String, String> kafkaConsumer;
 
-    private RentalRepository rentalRepository;
+    private final RentalService rentalService;
 
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
 
-    public RentalKafkaConsumer(KafkaProperties kafkaProperties, RentalRepository rentalRepository) {
+    public RentalConsumer(KafkaProperties kafkaProperties, RentalService rentalService) {
         this.kafkaProperties = kafkaProperties;
-        this.rentalRepository = rentalRepository;
+        this.rentalService = rentalService;
     }
 
 
@@ -56,12 +56,11 @@ public class RentalKafkaConsumer {
 
                     while (!closed.get()){
                         ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofSeconds(3));
-                        for(ConsumerRecord<String, String> record: records){
+                        for(ConsumerRecord<String, String> record: records) {
                             log.info("Consumed message in {} : {}", TOPIC, record.value());
                             ObjectMapper objectMapper = new ObjectMapper();
-                            CreateRentalEvent createRentalEvent= objectMapper.readValue(record.value(), CreateRentalEvent.class);
-                            Rental rental = Rental.createRental(createRentalEvent.getUserId());
-                            rentalRepository.save(rental);
+                            UserIdCreated userIdCreated = objectMapper.readValue(record.value(), UserIdCreated.class);
+                            Rental rental = rentalService.createRental(userIdCreated);
 
                         }
 
