@@ -226,13 +226,11 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public ResponseEntity payLatefee(Long userId) {
-        int latefee = rentalRepository.findByUserId(userId).get().getLateFee();
+    public LatefeeDTO getLatefee(Long userId) {
         LatefeeDTO latefeeDTO = new LatefeeDTO();
-        latefeeDTO.setLatefee(latefee);
+        latefeeDTO.setLatefee(rentalRepository.findByUserId(userId).get().getLateFee());
         latefeeDTO.setUserId(userId);
-        ResponseEntity result = userClient.usePoint(latefeeDTO);
-        return result;
+        return latefeeDTO;
     }
 
     @Override

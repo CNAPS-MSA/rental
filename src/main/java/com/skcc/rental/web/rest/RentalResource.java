@@ -6,6 +6,7 @@ import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
+import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import com.skcc.rental.web.rest.dto.RentalDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.mapper.RentalMapper;
@@ -231,7 +232,8 @@ public class RentalResource {
 
     @PutMapping("/release-overdue/user/{userId}")
     public ResponseEntity releaseOverdue(@PathVariable("userId") Long userId) {
-        ResponseEntity result = rentalService.payLatefee(userId);
+        LatefeeDTO latefeeDTO = rentalService.getLatefee(userId);
+        ResponseEntity result = userClient.usePoint(latefeeDTO);
         HttpStatus httpStatus = result.getStatusCode();
         System.out.println(httpStatus);
         if(httpStatus.equals(HttpStatus.OK)){
