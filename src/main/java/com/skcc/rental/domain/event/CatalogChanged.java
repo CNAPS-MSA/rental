@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class BookCatalogChanged {
+public class CatalogChanged {
 
     private String title;
 

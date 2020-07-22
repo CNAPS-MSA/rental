@@ -3,7 +3,7 @@ package com.skcc.rental.adaptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skcc.rental.config.KafkaProperties;
-import com.skcc.rental.domain.event.BookCatalogChanged;
+import com.skcc.rental.domain.event.CatalogChanged;
 import com.skcc.rental.domain.event.PointChanged;
 import com.skcc.rental.domain.event.StockChanged;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -72,10 +72,10 @@ public class RentalProducer {
 
     //대여, 반납  시 book catalog의 책 상태 업데이트
     public PublishResult updateBookCatalogStatus(Long bookId, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
-        BookCatalogChanged bookCatalogChanged = new BookCatalogChanged();
-        bookCatalogChanged.setBookId(bookId);
-        bookCatalogChanged.setEventType(eventType);
-        String message = objectMapper.writeValueAsString(bookCatalogChanged);
+        CatalogChanged catalogChanged = new CatalogChanged();
+        catalogChanged.setBookId(bookId);
+        catalogChanged.setEventType(eventType);
+        String message = objectMapper.writeValueAsString(catalogChanged);
         RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_CATALOG, message)).get();
         return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
     }
