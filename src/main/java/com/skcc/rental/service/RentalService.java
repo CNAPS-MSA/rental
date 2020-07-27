@@ -2,6 +2,7 @@ package com.skcc.rental.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
+import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
@@ -58,7 +59,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    Rental rentBooks(Long userId, List<BookInfoDTO> books);
+    List<RentedItem> rentBooks(Long userId, List<BookInfoDTO> books);
 
     /****
      *
@@ -83,6 +84,8 @@ public interface RentalService {
     LatefeeDTO getLatefee(Long userId);
 
     void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
+
+    Long beOverdueBooks(Long rentalId, Long bookId);
 
     //ResponseEntity usePoint
 }

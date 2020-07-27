@@ -5,6 +5,7 @@ import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.RentalProducer;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
+import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.repository.RentedItemRepository;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -120,9 +123,10 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Transactional
-    public Rental rentBooks(Long userId, List<BookInfoDTO> books) {
+    public List<RentedItem> rentBooks(Long userId, List<BookInfoDTO> books) {
         log.debug("Rent Books by : ", userId, " Book List : ", books);
         Rental rental = rentalRepository.findByUserId(userId).get();
+        List<RentedItem> rentedItems = new ArrayList<>();
         try {
             Boolean checkRentalStatus = rental.checkRentalAvailable(books.size());
             if (checkRentalStatus) {
@@ -132,6 +136,7 @@ public class RentalServiceImpl implements RentalService {
 
                 books.forEach(b -> {
                     try {
+                        rentedItems.add(rentedItemRepository.findByBookId(b.getId()));
                         updateBookStatus(b.getId(), "UNAVAILABLE");
                         updateBookCatalog(b.getId(), "RENT_BOOK");
                     } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
@@ -145,7 +150,7 @@ public class RentalServiceImpl implements RentalService {
             System.out.println(errorMessage);
             return null;
         }
-        return rental;
+        return rentedItems;
     }
 
     /**
@@ -248,6 +253,14 @@ public class RentalServiceImpl implements RentalService {
         rentalProducer.updateBookCatalogStatus(bookId, eventType);
     }
 
+    @Override
+    public Long beOverdueBooks(Long rentalId, Long bookId) {
+        Rental rental = rentalRepository.findById(rentalId).get();
+        rental= rental.overdueBook(bookId);
+        rental = rental.makeRentUnable();
+        rentalRepository.save(rental);
+        return bookId;
+    }
 
 
 }

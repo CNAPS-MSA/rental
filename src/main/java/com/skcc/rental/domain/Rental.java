@@ -36,15 +36,15 @@ public class Rental implements Serializable {
     @Column(name = "late_fee")
     private int lateFee;
 
-    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true) //고아 객체 제거 -> rental에서 컬렉션의 객체 삭제시, 해당 컬렉션의 entity삭제
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<RentedItem> rentedItems = new HashSet<>();
 
-    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<OverdueItem> overdueItems = new HashSet<>();
 
-    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<ReturnedItem> returnedItems = new HashSet<>();
 
@@ -80,7 +80,7 @@ public class Rental implements Serializable {
 
     public Rental removeRentedItem(RentedItem rentedItem) {
         this.rentedItems.remove(rentedItem);
-        rentedItem.setRental(null);
+        //rentedItem.setRental(null);
         return this;
     }
 
@@ -93,7 +93,7 @@ public class Rental implements Serializable {
 
     public Rental removeOverdueItem(OverdueItem overdueItem) {
         this.overdueItems.remove(overdueItem);
-        overdueItem.setRental(null);
+       // overdueItem.setRental(null);
         return this;
     }
 
@@ -106,7 +106,7 @@ public class Rental implements Serializable {
     }
     public Rental removeReturnedItem(ReturnedItem returnedItem) {
         this.returnedItems.remove(returnedItem);
-        returnedItem.setRental(null);
+      //  returnedItem.setRental(null);
         return this;
     }
 
@@ -158,9 +158,10 @@ public class Rental implements Serializable {
      *
      * @return
      */
-    public void makeRentUnable() {
+    public Rental makeRentUnable() {
         this.setRentalStatus(RentalStatus.RENT_UNAVAILABLE);
         this.setLateFee(this.getLateFee() + 30); //연체시 연체비 30포인트 누적
+        return this;
     }
 
     /**
@@ -234,6 +235,12 @@ public class Rental implements Serializable {
 
     public Rental lateFee(int lateFee) {
         this.lateFee = lateFee;
+        return this;
+    }
+
+    public Rental beOverdueBook(RentedItem rentedItem) {
+        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(), rentedItem.getBookTitle(), rentedItem.getDueDate()));
+        this.removeRentedItem(rentedItem);
         return this;
     }
 }

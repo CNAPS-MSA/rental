@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -85,4 +86,17 @@ public class RentedItemServiceImpl implements RentedItemService {
         log.debug("Request to delete RentedItem : {}", id);
         rentedItemRepository.deleteById(id);
     }
+
+    @Override
+    public List<RentedItem> findAllForManage() {
+        return rentedItemRepository.findAll();
+    }
+
+    @Override
+    public Page<RentedItemDTO> findByTitle(String title, Pageable pageable) {
+        return rentedItemRepository.findByBookTitleContaining(title, pageable)
+            .map(rentedItemMapper::toDto);
+    }
+
+
 }

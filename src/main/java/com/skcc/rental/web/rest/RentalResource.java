@@ -4,12 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
+import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import com.skcc.rental.web.rest.dto.RentalDTO;
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.mapper.RentalMapper;
+import com.skcc.rental.web.rest.mapper.RentedItemMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import org.slf4j.Logger;
@@ -47,12 +50,13 @@ public class RentalResource {
 
     private final RentalService rentalService;
     private final RentalMapper rentalMapper;
-
-    public RentalResource(RentalService rentalService, RentalMapper rentalMapper, BookClient bookClient, UserClient userClient) {
+    private final RentedItemMapper rentedItemMapper;
+    public RentalResource(RentalService rentalService, RentalMapper rentalMapper, BookClient bookClient, UserClient userClient, RentedItemMapper rentedItemMapper) {
         this.rentalService = rentalService;
         this.rentalMapper = rentalMapper;
         this.bookClient = bookClient;
         this.userClient = userClient;
+        this.rentedItemMapper = rentedItemMapper;
     }
 
     /**
@@ -151,18 +155,18 @@ public class RentalResource {
      * @throws JsonProcessingException
      */
     @PostMapping("/rentals/{userid}/RentedItem/{books}")
-    public ResponseEntity rentBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
+    public ResponseEntity<List<RentedItemDTO>> rentBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
 
         ResponseEntity<List<BookInfoDTO>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
         List<BookInfoDTO> bookInfoDTOList = bookInfoResult.getBody();
         log.debug("book info list", bookInfoDTOList.toString());
 
-        Rental rental = rentalService.rentBooks(userid, bookInfoDTOList);
+        List<RentedItem> rentedItems= rentalService.rentBooks(userid, bookInfoDTOList);
 
-        if (rental != null) {
-            RentalDTO result = rentalMapper.toDto(rental);
-            return ResponseEntity.ok().body(result);
+        if (rentedItems != null) {
+            List<RentedItemDTO> rentedItemDTOS = rentedItemMapper.toDto(rentedItems);
+            return ResponseEntity.ok().body(rentedItemDTOS);
         } else {
             log.debug("대여 할 수 없는 상태입니다.");
             return ResponseEntity.badRequest().build();
@@ -196,23 +200,30 @@ public class RentalResource {
     /**
      * 도서 연체처리 하기
      *
-     * @param userid
-     * @param books
-     * @return
+     * @param rentalId
+     * @param bookId
+     *
      */
-    @PostMapping("/rentals/{userid}/OverdueItem/{books}")
-    public ResponseEntity BeOverdue(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
-        Rental rental = rentalService.overdueBooks(userid, books);
-        log.debug("overdue Books");
+//    @PostMapping("/rentals/{userid}/OverdueItem/{books}")
+//    public ResponseEntity BeOverdue(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
+//        Rental rental = rentalService.overdueBooks(userid, books);
+//        log.debug("overdue Books");
+//
+//        if (rental != null) {
+//            RentalDTO result = rentalMapper.toDto(rental);
+//            return ResponseEntity.ok().body(result);
+//        } else {
+//            log.debug("대여 기록이 없는 도서입니다.");
+//            return ResponseEntity.badRequest().build();
+//        }
+//    }
 
-        if (rental != null) {
-            RentalDTO result = rentalMapper.toDto(rental);
-            return ResponseEntity.ok().body(result);
-        } else {
-            log.debug("대여 기록이 없는 도서입니다.");
-            return ResponseEntity.badRequest().build();
-        }
+    @PostMapping("/rentals/{rentalId}/OverdueItem/{bookId}")
+    public ResponseEntity BeOverdue(@PathVariable("rentalId")Long rentalId, @PathVariable("bookId")Long bookId){
+        Long result = rentalService.beOverdueBooks(rentalId, bookId);
+        return ResponseEntity.ok().body(result);
     }
+
 
     /**
      * 연체도서 반납하기
