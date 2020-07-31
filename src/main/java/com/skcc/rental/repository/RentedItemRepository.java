@@ -18,6 +18,6 @@ import java.util.List;
 @Repository
 public interface RentedItemRepository extends JpaRepository<RentedItem, Long> {
     RentedItem findByBookId(Long bookId);
-    List<RentedItem> findByRental(Rental rental);
+    Page<RentedItem> findByRental(Rental rental, Pageable pageable);
     Page<RentedItem> findByBookTitleContaining(String bookTitle, Pageable pageable);
 }

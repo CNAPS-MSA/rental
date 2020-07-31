@@ -1,6 +1,7 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.service.OverdueItemService;
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 
@@ -120,5 +121,11 @@ public class OverdueItemResource {
         log.debug("REST request to delete OverdueItem : {}", id);
         overdueItemService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
+    }
+    @GetMapping("/overdue-items/rental/{rentalId}")
+    public ResponseEntity<List<OverdueItemDTO>> loadOverdueItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
+        Page<OverdueItemDTO> overdueItemDTOS = overdueItemService.findOverdueItemsByRental(rentalId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), overdueItemDTOS);
+        return ResponseEntity.ok().headers(headers).body(overdueItemDTOS.getContent());
     }
 }

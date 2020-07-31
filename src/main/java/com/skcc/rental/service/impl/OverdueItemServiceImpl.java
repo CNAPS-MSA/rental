@@ -1,8 +1,10 @@
 package com.skcc.rental.service.impl;
 
+import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.OverdueItemService;
 import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.repository.OverdueItemRepository;
+import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 import com.skcc.rental.web.rest.mapper.OverdueItemMapper;
 import org.slf4j.Logger;
@@ -27,10 +29,11 @@ public class OverdueItemServiceImpl implements OverdueItemService {
     private final OverdueItemRepository overdueItemRepository;
 
     private final OverdueItemMapper overdueItemMapper;
-
-    public OverdueItemServiceImpl(OverdueItemRepository overdueItemRepository, OverdueItemMapper overdueItemMapper) {
+    private final RentalService rentalService;
+    public OverdueItemServiceImpl(OverdueItemRepository overdueItemRepository, OverdueItemMapper overdueItemMapper, RentalService rentalService) {
         this.overdueItemRepository = overdueItemRepository;
         this.overdueItemMapper = overdueItemMapper;
+        this.rentalService = rentalService;
     }
 
     /**
@@ -84,5 +87,11 @@ public class OverdueItemServiceImpl implements OverdueItemService {
     public void delete(Long id) {
         log.debug("Request to delete OverdueItem : {}", id);
         overdueItemRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<OverdueItemDTO> findOverdueItemsByRental(Long rentalId, Pageable pageable) {
+        Rental rental = rentalService.findOne(rentalId).get();
+        return overdueItemRepository.findByRental(rental, pageable).map(overdueItemMapper::toDto);
     }
 }

@@ -49,4 +49,7 @@ public interface RentedItemService {
     List<RentedItem> findAllForManage();
 
     Page<RentedItemDTO> findByTitle(String title, Pageable pageable);
+
+
+    Page<RentedItemDTO> findRentedItemsByRental(Long rentalId, Pageable pageable);
 }

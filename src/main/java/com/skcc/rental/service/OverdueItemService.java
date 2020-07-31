@@ -42,4 +42,6 @@ public interface OverdueItemService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    Page<OverdueItemDTO> findOverdueItemsByRental(Long rentalId, Pageable pageable);
 }

@@ -6,6 +6,7 @@ import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,8 @@ public interface RentalService {
      *
      * ****/
 
+    Optional<Rental> findRentalByUser(Long userId);
+
     Rental returnBooks(Long userId, List<Long> bookIds);
 
     void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
@@ -86,6 +89,8 @@ public interface RentalService {
     void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
 
     Long beOverdueBooks(Long rentalId, Long bookId);
+
+
 
     //ResponseEntity usePoint
 }

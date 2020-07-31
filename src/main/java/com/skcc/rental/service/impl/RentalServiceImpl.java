@@ -153,6 +153,11 @@ public class RentalServiceImpl implements RentalService {
         return rentedItems;
     }
 
+    @Override
+    public Optional<Rental> findRentalByUser(Long userId) {
+        return rentalRepository.findByUserId(userId);
+    }
+
     /**
      * 여러 권 반납하기
      *
@@ -261,6 +266,8 @@ public class RentalServiceImpl implements RentalService {
         rentalRepository.save(rental);
         return bookId;
     }
+
+
 
 
 }

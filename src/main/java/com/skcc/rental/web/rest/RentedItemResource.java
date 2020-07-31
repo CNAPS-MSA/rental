@@ -1,6 +1,7 @@
 package com.skcc.rental.web.rest;
 
-import com.skcc.rental.domain.RentedItem;
+import com.skcc.rental.domain.Rental;
+import com.skcc.rental.service.RentalService;
 import com.skcc.rental.service.RentedItemService;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.RentedItemDTO;
@@ -12,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -39,9 +39,10 @@ public class RentedItemResource {
     private String applicationName;
 
     private final RentedItemService rentedItemService;
-
-    public RentedItemResource(RentedItemService rentedItemService) {
+    private final RentalService rentalService;
+    public RentedItemResource(RentedItemService rentedItemService, RentalService rentalService) {
         this.rentedItemService = rentedItemService;
+        this.rentalService = rentalService;
     }
 
     /**
@@ -125,8 +126,14 @@ public class RentedItemResource {
     }
 
     @GetMapping("/rented-items/title/{title}")
-    public ResponseEntity<List<RentedItemDTO>> getRentedItemsByTitle(@PathVariable("title")String title, Pageable pageable){
+    public ResponseEntity<List<RentedItemDTO>> loadRentedItemsByTitle(@PathVariable("title")String title, Pageable pageable){
         Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findByTitle(title, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), rentedItemDTOS);
+        return ResponseEntity.ok().headers(headers).body(rentedItemDTOS.getContent());
+    }
+    @GetMapping("/rented-items/rental/{rentalId}")
+    public ResponseEntity<List<RentedItemDTO>> loadRentedItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
+        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findRentedItemsByRental(rentalId, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), rentedItemDTOS);
         return ResponseEntity.ok().headers(headers).body(rentedItemDTOS.getContent());
     }

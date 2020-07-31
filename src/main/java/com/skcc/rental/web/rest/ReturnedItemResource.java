@@ -1,6 +1,7 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.service.ReturnedItemService;
+import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.ReturnedItemDTO;
 
@@ -120,5 +121,11 @@ public class ReturnedItemResource {
         log.debug("REST request to delete ReturnedItem : {}", id);
         returnedItemService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
+    }
+    @GetMapping("/returned-items/rental/{rentalId}")
+    public ResponseEntity<List<ReturnedItemDTO>> loadReturnedItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
+        Page<ReturnedItemDTO> returnedItemDTOS = returnedItemService.findReturnedItemsByRental(rentalId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), returnedItemDTOS);
+        return ResponseEntity.ok().headers(headers).body(returnedItemDTOS.getContent());
     }
 }

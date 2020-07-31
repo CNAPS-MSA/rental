@@ -241,7 +241,7 @@ public class RentalResource {
     }
 
 
-    @PutMapping("/release-overdue/user/{userId}")
+    @PutMapping("/rentals/release-overdue/user/{userId}")
     public ResponseEntity releaseOverdue(@PathVariable("userId") Long userId) {
         LatefeeDTO latefeeDTO = rentalService.getLatefee(userId);
         ResponseEntity result = userClient.usePoint(latefeeDTO);
@@ -255,4 +255,12 @@ public class RentalResource {
         }
 
     }
+
+    @GetMapping("/rentals/loadInfo/{userId}")
+    public ResponseEntity loadRentalInfo(@PathVariable("userId")Long userId){
+        RentalDTO rentalDTO = rentalMapper.toDto(rentalService.findRentalByUser(userId).get());
+        return ResponseEntity.ok().body(rentalDTO);
+    }
+
+
 }

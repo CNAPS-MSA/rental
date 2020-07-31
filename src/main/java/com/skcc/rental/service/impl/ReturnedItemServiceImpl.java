@@ -1,5 +1,7 @@
 package com.skcc.rental.service.impl;
 
+import com.skcc.rental.domain.Rental;
+import com.skcc.rental.service.RentalService;
 import com.skcc.rental.service.ReturnedItemService;
 import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.repository.ReturnedItemRepository;
@@ -27,10 +29,11 @@ public class ReturnedItemServiceImpl implements ReturnedItemService {
     private final ReturnedItemRepository returnedItemRepository;
 
     private final ReturnedItemMapper returnedItemMapper;
-
-    public ReturnedItemServiceImpl(ReturnedItemRepository returnedItemRepository, ReturnedItemMapper returnedItemMapper) {
+    private final RentalService rentalService;
+    public ReturnedItemServiceImpl(ReturnedItemRepository returnedItemRepository, ReturnedItemMapper returnedItemMapper, RentalService rentalService) {
         this.returnedItemRepository = returnedItemRepository;
         this.returnedItemMapper = returnedItemMapper;
+        this.rentalService = rentalService;
     }
 
     /**
@@ -84,5 +87,12 @@ public class ReturnedItemServiceImpl implements ReturnedItemService {
     public void delete(Long id) {
         log.debug("Request to delete ReturnedItem : {}", id);
         returnedItemRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<ReturnedItemDTO> findReturnedItemsByRental(Long rentalId, Pageable pageable) {
+        Rental rental = rentalService.findOne(rentalId).get();
+        return returnedItemRepository.findByRental(rental, pageable).map(returnedItemMapper::toDto);
+
     }
 }
