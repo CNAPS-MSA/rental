@@ -2,9 +2,11 @@ package com.skcc.rental.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
+import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
+import com.skcc.rental.web.rest.dto.RentedItemDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +60,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    Rental rentBooks(Long userId, List<BookInfoDTO> books);
+    List<RentedItem> rentBooks(Long userId, List<BookInfoDTO> books);
 
     /****
      *
@@ -68,7 +70,9 @@ public interface RentalService {
      *
      * ****/
 
-    Rental returnBooks(Long userId, List<Long> bookIds);
+    Optional<Rental> findRentalByUser(Long userId);
+
+    Rental returnBook(Long userId, Long bookIds);
 
     void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
 
@@ -76,13 +80,17 @@ public interface RentalService {
 
     Rental overdueBooks(Long userId, List<Long> books);
 
-    Rental returnOverdueBooks(Long userid, List<Long> books);
+    Rental returnOverdueBooks(Long userid, Long book);
 
     Rental releaseOverdue(Long userId);
 
     LatefeeDTO getLatefee(Long userId);
 
     void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
+
+    Long beOverdueBooks(Long rentalId, Long bookId);
+
+
 
     //ResponseEntity usePoint
 }

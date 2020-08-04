@@ -42,4 +42,6 @@ public interface ReturnedItemService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    Page<ReturnedItemDTO> findReturnedItemsByRental(Long rentalId, Pageable pageable);
 }

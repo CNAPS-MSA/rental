@@ -1,5 +1,7 @@
 package com.skcc.rental.web.rest;
 
+import com.skcc.rental.domain.Rental;
+import com.skcc.rental.service.RentalService;
 import com.skcc.rental.service.RentedItemService;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.RentedItemDTO;
@@ -37,9 +39,10 @@ public class RentedItemResource {
     private String applicationName;
 
     private final RentedItemService rentedItemService;
-
-    public RentedItemResource(RentedItemService rentedItemService) {
+    private final RentalService rentalService;
+    public RentedItemResource(RentedItemService rentedItemService, RentalService rentalService) {
         this.rentedItemService = rentedItemService;
+        this.rentalService = rentalService;
     }
 
     /**
@@ -120,5 +123,18 @@ public class RentedItemResource {
         log.debug("REST request to delete RentedItem : {}", id);
         rentedItemService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
+    }
+
+    @GetMapping("/rented-items/title/{title}")
+    public ResponseEntity<List<RentedItemDTO>> loadRentedItemsByTitle(@PathVariable("title")String title, Pageable pageable){
+        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findByTitle(title, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), rentedItemDTOS);
+        return ResponseEntity.ok().headers(headers).body(rentedItemDTOS.getContent());
+    }
+    @GetMapping("/rented-items/rental/{rentalId}")
+    public ResponseEntity<List<RentedItemDTO>> loadRentedItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
+        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findRentedItemsByRental(rentalId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), rentedItemDTOS);
+        return ResponseEntity.ok().headers(headers).body(rentedItemDTOS.getContent());
     }
 }
