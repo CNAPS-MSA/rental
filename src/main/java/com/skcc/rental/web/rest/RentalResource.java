@@ -181,12 +181,12 @@ public class RentalResource {
      * @param books
      * @return
      */
-    @DeleteMapping("/rentals/{userid}/RentedItem/{books}")
-    public ResponseEntity returnBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
+    @DeleteMapping("/rentals/{userid}/RentedItem/{book}")
+    public ResponseEntity returnBooks(@PathVariable("userid") Long userid, @PathVariable("book") Long book) {
 
-        Rental rental = rentalService.returnBooks(userid, books);
+        Rental rental = rentalService.returnBook(userid, book);
         log.debug("returned books");
-        log.debug("SEND BOOKIDS for Book: {}", books);
+        log.debug("SEND BOOKIDS for Book: {}", book);
 
         if (rental != null) {
             RentalDTO result = rentalMapper.toDto(rental);
@@ -232,9 +232,9 @@ public class RentalResource {
      * @param books
      * @return
      */
-    @DeleteMapping("/rentals/{userid}/OverdueItem/{books}")
-    public ResponseEntity returnOverdueBook(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) {
-        Rental rental = rentalService.returnOverdueBooks(userid, books);
+    @DeleteMapping("/rentals/{userid}/OverdueItem/{book}")
+    public ResponseEntity returnOverdueBook(@PathVariable("userid") Long userid, @PathVariable("book") Long book) {
+        Rental rental = rentalService.returnOverdueBooks(userid, book);
 
         RentalDTO result = rentalMapper.toDto(rental);
         return ResponseEntity.ok().body(result);

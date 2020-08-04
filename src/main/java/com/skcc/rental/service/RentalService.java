@@ -72,7 +72,7 @@ public interface RentalService {
 
     Optional<Rental> findRentalByUser(Long userId);
 
-    Rental returnBooks(Long userId, List<Long> bookIds);
+    Rental returnBook(Long userId, Long bookIds);
 
     void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
 
@@ -80,7 +80,7 @@ public interface RentalService {
 
     Rental overdueBooks(Long userId, List<Long> books);
 
-    Rental returnOverdueBooks(Long userid, List<Long> books);
+    Rental returnOverdueBooks(Long userid, Long book);
 
     Rental releaseOverdue(Long userId);
 

@@ -166,22 +166,20 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Transactional
-    public Rental returnBooks(Long userId, List<Long> bookIds) {
-        log.debug("Return books by ", userId, " Return Book List : ", bookIds);
+    public Rental returnBook(Long userId, Long bookId) {
+        log.debug("Return books by ", userId, " Return Book List : ", bookId);
         Rental rental = rentalRepository.findByUserId(userId).get();
+        rental = rental.returnbook(bookId);
+        rental = rentalRepository.save(rental);
 
-        Rental finalRental = rental;
-        bookIds.forEach(bookid -> finalRental.returnbook(bookid));
-        rental = rentalRepository.save(finalRental);
 
-        bookIds.forEach(b -> {
-            try {
-                updateBookStatus(b, "AVAILABLE");
-                updateBookCatalog(b, "RETURN_BOOK");
-            } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+        try {
+                updateBookStatus(bookId, "AVAILABLE");
+                updateBookCatalog(bookId, "RETURN_BOOK");
+        } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
                 e.printStackTrace();
-            }
-        });
+        }
+
         return rental;
     }
 
@@ -206,23 +204,21 @@ public class RentalServiceImpl implements RentalService {
      * 연체된 책 반납하기 (여러권)
      *
      * @param userid
-     * @param books
+     * @param book
      * @return
      */
     @Override
-    public Rental returnOverdueBooks(Long userid, List<Long> books) {
+    public Rental returnOverdueBooks(Long userid, Long book) {
         Rental rental = rentalRepository.findByUserId(userid).get();
 
-        books.forEach(bookid -> rental.returnOverdueBook(bookid));
+        rental = rental.returnOverdueBook(book);
+        try {
+            updateBookStatus(book, "AVAILABLE");
+            updateBookCatalog(book, "RETURN_BOOK");
+        } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
-        books.forEach(b -> { //책상태 업데이트
-            try {
-                updateBookStatus(b, "AVAILABLE");
-                updateBookCatalog(b, "RETURN_BOOK");
-            } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        });
         return rentalRepository.save(rental);
     }
 
