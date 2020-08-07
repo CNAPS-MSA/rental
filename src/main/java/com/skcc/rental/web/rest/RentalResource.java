@@ -5,6 +5,7 @@ import com.skcc.rental.adaptor.BookClient;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.RentedItem;
+import com.skcc.rental.exception.RentUnavailableException;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
@@ -148,14 +149,15 @@ public class RentalResource {
     /**
      * 도서 대여 하기
      * @param userid
-     * @param books
+     * @param bookId
      * @return
      * @throws InterruptedException
      * @throws ExecutionException
      * @throws JsonProcessingException
      */
     @PostMapping("/rentals/{userid}/RentedItem/{book}")
-    public ResponseEntity<RentedItemDTO> rentBooks(@PathVariable("userid") Long userid, @PathVariable("book") Long bookId) throws InterruptedException, ExecutionException, JsonProcessingException {
+    public ResponseEntity<RentedItemDTO> rentBooks(@PathVariable("userid") Long userid, @PathVariable("book") Long bookId)
+        throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
         log.debug("rent book request");
 
         ResponseEntity<BookInfoDTO> bookInfoResult = bookClient.findBookInfo(bookId); //feign - 책 정보 가져오기
@@ -163,14 +165,9 @@ public class RentalResource {
         log.debug("book info list", bookInfoDTO.toString());
 
         RentedItem rentedItem= rentalService.rentBook(userid, bookInfoDTO);
+        RentedItemDTO rentedItemDTO = rentedItemMapper.toDto(rentedItem);
+        return ResponseEntity.ok().body(rentedItemDTO);
 
-        if (rentedItem != null) {
-            RentedItemDTO rentedItemDTO = rentedItemMapper.toDto(rentedItem);
-            return ResponseEntity.ok().body(rentedItemDTO);
-        } else {
-            log.debug("대여 할 수 없는 상태입니다.");
-            return ResponseEntity.badRequest().build();
-        }
     }
 
 
@@ -178,7 +175,7 @@ public class RentalResource {
      * 도서 반납 하기
      *
      * @param userid
-     * @param books
+     * @param book
      * @return
      */
     @DeleteMapping("/rentals/{userid}/RentedItem/{book}")
@@ -229,11 +226,11 @@ public class RentalResource {
      * 연체도서 반납하기
      *
      * @param userid
-     * @param books
+     * @param book
      * @return
      */
     @DeleteMapping("/rentals/{userid}/OverdueItem/{book}")
-    public ResponseEntity returnOverdueBook(@PathVariable("userid") Long userid, @PathVariable("book") Long book) {
+    public ResponseEntity returnOverdueBook(@PathVariable("userid") Long userid, @PathVariable("book") Long book) throws InterruptedException, ExecutionException, JsonProcessingException {
         Rental rental = rentalService.returnOverdueBooks(userid, book);
 
         RentalDTO result = rentalMapper.toDto(rental);

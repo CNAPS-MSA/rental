@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
+import com.skcc.rental.exception.RentUnavailableException;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import com.skcc.rental.web.rest.dto.RentedItemDTO;
@@ -60,7 +61,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    RentedItem rentBook(Long userId, BookInfoDTO book);
+    RentedItem rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException;
 
     /****
      *
@@ -78,7 +79,7 @@ public interface RentalService {
 
     void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException;
 
-    Rental returnOverdueBooks(Long userid, Long book);
+    Rental returnOverdueBooks(Long userid, Long book) throws ExecutionException, InterruptedException, JsonProcessingException;
 
     Rental releaseOverdue(Long userId);
 

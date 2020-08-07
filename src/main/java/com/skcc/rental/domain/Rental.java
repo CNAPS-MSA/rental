@@ -1,6 +1,7 @@
 package com.skcc.rental.domain;
 
 import com.skcc.rental.domain.enumeration.RentalStatus;
+import com.skcc.rental.exception.RentUnavailableException;
 import lombok.Data;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -224,12 +225,10 @@ public class Rental implements Serializable {
     }
 
     //대여 가능 여부 체크 //
-    public boolean checkRentalAvailable() throws Exception{
-        if(this.rentalStatus.equals(RentalStatus.RENT_UNAVAILABLE )) throw new Exception("연체 상태입니다.");
-        if(this.getLateFee()!=0) throw new Exception("연체료를 정산 후, 도서를 대여하실 수 있습니다.");
-        if(this.getRentedItems().size()>=5) throw new Exception("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
+    public void checkRentalAvailable() throws RentUnavailableException {
+        if(this.rentalStatus.equals(RentalStatus.RENT_UNAVAILABLE ) || this.getLateFee()!=0) throw new RentUnavailableException("연체 상태입니다. 연체료를 정산 후, 도서를 대여하실 수 있습니다.");
+        if(this.getRentedItems().size()>=5) throw new RentUnavailableException("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
 
-        return true;
     }
 
 

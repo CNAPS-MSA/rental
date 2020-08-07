@@ -7,6 +7,7 @@ import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
+import com.skcc.rental.exception.RentUnavailableException;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.repository.RentedItemRepository;
 import com.skcc.rental.repository.ReturnedItemRepository;
@@ -104,38 +105,28 @@ public class RentalServiceImpl implements RentalService {
     }
 
     /**
-     * 여러권 대여하기
+     * 도서 대여하기
      *
      * @param userId
      * @param book
      * @return
      */
     @Transactional
-    public RentedItem rentBook(Long userId, BookInfoDTO book) {
+    public RentedItem rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
         log.debug("Rent Books by : ", userId, " Book List : ", book);
         Rental rental = rentalRepository.findByUserId(userId).get();
         RentedItem rentedItem = new RentedItem();
-        try {
-            Boolean checkRentalStatus = rental.checkRentalAvailable();
-            if (checkRentalStatus) {
-                rental = rental.rentBook(book.getId(), book.getTitle());
-                rentalRepository.save(rental);
+        rental.checkRentalAvailable();
 
-                try{
-                    updateBookStatus(book.getId(), "UNAVAILABLE");
-                    updateBookCatalog(book.getId(), "RENT_BOOK");
-                } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+        rental = rental.rentBook(book.getId(), book.getTitle());
+        rentalRepository.save(rental);
 
-                savePoints(userId);
-            }
-        } catch (Exception e) {
-            String errorMessage = e.getMessage();
-            System.out.println(errorMessage);
-            return null;
-        }
+        updateBookStatus(book.getId(), "UNAVAILABLE"); //send to book service
+        updateBookCatalog(book.getId(), "RENT_BOOK"); //send to book catalog service
+
+        savePoints(userId); //send to user service
         return rentedItem;
+
     }
 
     @Override
@@ -176,16 +167,13 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Override
-    public Rental returnOverdueBooks(Long userid, Long book) {
+    public Rental returnOverdueBooks(Long userid, Long book) throws ExecutionException , InterruptedException , JsonProcessingException{
         Rental rental = rentalRepository.findByUserId(userid).get();
 
         rental = rental.returnOverdueBook(book);
-        try {
-            updateBookStatus(book, "AVAILABLE");
-            updateBookCatalog(book, "RETURN_BOOK");
-        } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-            e.printStackTrace();
-        }
+
+        updateBookStatus(book, "AVAILABLE");
+        updateBookCatalog(book, "RETURN_BOOK");
 
         return rentalRepository.save(rental);
     }
