@@ -154,19 +154,19 @@ public class RentalResource {
      * @throws ExecutionException
      * @throws JsonProcessingException
      */
-    @PostMapping("/rentals/{userid}/RentedItem/{books}")
-    public ResponseEntity<List<RentedItemDTO>> rentBooks(@PathVariable("userid") Long userid, @PathVariable("books") List<Long> books) throws InterruptedException, ExecutionException, JsonProcessingException {
+    @PostMapping("/rentals/{userid}/RentedItem/{book}")
+    public ResponseEntity<RentedItemDTO> rentBooks(@PathVariable("userid") Long userid, @PathVariable("book") Long bookId) throws InterruptedException, ExecutionException, JsonProcessingException {
         log.debug("rent book request");
 
-        ResponseEntity<List<BookInfoDTO>> bookInfoResult = bookClient.getBookInfo(books, userid); //feign - 책 정보 가져오기
-        List<BookInfoDTO> bookInfoDTOList = bookInfoResult.getBody();
-        log.debug("book info list", bookInfoDTOList.toString());
+        ResponseEntity<BookInfoDTO> bookInfoResult = bookClient.findBookInfo(bookId); //feign - 책 정보 가져오기
+        BookInfoDTO bookInfoDTO = bookInfoResult.getBody();
+        log.debug("book info list", bookInfoDTO.toString());
 
-        List<RentedItem> rentedItems= rentalService.rentBooks(userid, bookInfoDTOList);
+        RentedItem rentedItem= rentalService.rentBook(userid, bookInfoDTO);
 
-        if (rentedItems != null) {
-            List<RentedItemDTO> rentedItemDTOS = rentedItemMapper.toDto(rentedItems);
-            return ResponseEntity.ok().body(rentedItemDTOS);
+        if (rentedItem != null) {
+            RentedItemDTO rentedItemDTO = rentedItemMapper.toDto(rentedItem);
+            return ResponseEntity.ok().body(rentedItemDTO);
         } else {
             log.debug("대여 할 수 없는 상태입니다.");
             return ResponseEntity.badRequest().build();
