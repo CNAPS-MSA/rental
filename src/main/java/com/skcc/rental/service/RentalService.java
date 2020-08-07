@@ -60,7 +60,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    List<RentedItem> rentBooks(Long userId, List<BookInfoDTO> books);
+    RentedItem rentBook(Long userId, BookInfoDTO book);
 
     /****
      *
@@ -76,9 +76,7 @@ public interface RentalService {
 
     void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
 
-    void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException;
-
-    Rental overdueBooks(Long userId, List<Long> books);
+    void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException;
 
     Rental returnOverdueBooks(Long userid, Long book);
 

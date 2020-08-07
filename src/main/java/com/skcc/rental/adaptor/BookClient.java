@@ -11,6 +11,6 @@ import java.util.List;
 
 @FeignClient(name= "book", configuration = {FeignConfiguration.class})
 public interface BookClient {
-    @GetMapping("/api/getBookInfo/{bookIds}/{userid}")
-    ResponseEntity<List<BookInfoDTO>> getBookInfo(@PathVariable("bookIds") List<Long> bookIds, @PathVariable("userid") Long userid);
+    @GetMapping("/api/books/findBookInfo/{bookId}")
+    ResponseEntity<BookInfoDTO> findBookInfo(@PathVariable("bookId") Long bookId);
 }

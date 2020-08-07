@@ -224,10 +224,10 @@ public class Rental implements Serializable {
     }
 
     //대여 가능 여부 체크 //
-    public boolean checkRentalAvailable(Integer newBookListCnt) throws Exception{
+    public boolean checkRentalAvailable() throws Exception{
         if(this.rentalStatus.equals(RentalStatus.RENT_UNAVAILABLE )) throw new Exception("연체 상태입니다.");
         if(this.getLateFee()!=0) throw new Exception("연체료를 정산 후, 도서를 대여하실 수 있습니다.");
-        if(newBookListCnt+this.getRentedItems().size()>5) throw new Exception("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
+        if(this.getRentedItems().size()>=5) throw new Exception("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
 
         return true;
     }
@@ -238,9 +238,4 @@ public class Rental implements Serializable {
         return this;
     }
 
-    public Rental beOverdueBook(RentedItem rentedItem) {
-        this.addOverdueItem(OverdueItem.createOverdueItem(rentedItem.getBookId(), rentedItem.getBookTitle(), rentedItem.getDueDate()));
-        this.removeRentedItem(rentedItem);
-        return this;
-    }
 }

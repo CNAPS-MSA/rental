@@ -38,26 +38,14 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalRepository rentalRepository;
 
-    private final RentedItemRepository rentedItemRepository;
-
-    private final ReturnedItemRepository returnedItemRepository;
-
     private final RentalProducer rentalProducer;
-
-    private final BookClient bookClient;
-
-    private final UserClient userClient;
 
     private int pointPerBooks = 30;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentedItemRepository rentedItemRepository, ReturnedItemRepository returnedItemRepository,
-                             RentalProducer rentalProducer, BookClient bookClient, UserClient userClient) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer) {
         this.rentalRepository = rentalRepository;
-        this.rentedItemRepository = rentedItemRepository;
-        this.returnedItemRepository = returnedItemRepository;
         this.rentalProducer = rentalProducer;
-        this.bookClient = bookClient;
-        this.userClient = userClient;
+
     }
 
     /**
@@ -119,38 +107,35 @@ public class RentalServiceImpl implements RentalService {
      * 여러권 대여하기
      *
      * @param userId
-     * @param books
+     * @param book
      * @return
      */
     @Transactional
-    public List<RentedItem> rentBooks(Long userId, List<BookInfoDTO> books) {
-        log.debug("Rent Books by : ", userId, " Book List : ", books);
+    public RentedItem rentBook(Long userId, BookInfoDTO book) {
+        log.debug("Rent Books by : ", userId, " Book List : ", book);
         Rental rental = rentalRepository.findByUserId(userId).get();
-        List<RentedItem> rentedItems = new ArrayList<>();
+        RentedItem rentedItem = new RentedItem();
         try {
-            Boolean checkRentalStatus = rental.checkRentalAvailable(books.size());
+            Boolean checkRentalStatus = rental.checkRentalAvailable();
             if (checkRentalStatus) {
-
-                books.forEach(bookInfo -> rental.rentBook(bookInfo.getId(), bookInfo.getTitle()));
+                rental = rental.rentBook(book.getId(), book.getTitle());
                 rentalRepository.save(rental);
 
-                books.forEach(b -> {
-                    try {
-                        rentedItems.add(rentedItemRepository.findByBookId(b.getId()));
-                        updateBookStatus(b.getId(), "UNAVAILABLE");
-                        updateBookCatalog(b.getId(), "RENT_BOOK");
-                    } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
-                });
-                savePoints(userId, books.size());
+                try{
+                    updateBookStatus(book.getId(), "UNAVAILABLE");
+                    updateBookCatalog(book.getId(), "RENT_BOOK");
+                } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+
+                savePoints(userId);
             }
         } catch (Exception e) {
             String errorMessage = e.getMessage();
             System.out.println(errorMessage);
             return null;
         }
-        return rentedItems;
+        return rentedItem;
     }
 
     @Override
@@ -162,7 +147,7 @@ public class RentalServiceImpl implements RentalService {
      * 여러 권 반납하기
      *
      * @param userId
-     * @param bookIds
+     * @param bookId
      * @return
      */
     @Transactional
@@ -184,24 +169,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     /**
-     * 연체처리 여러 권
-     *
-     * @param userId
-     * @param books
-     * @return
-     */
-    @Override
-    public Rental overdueBooks(Long userId, List<Long> books) {
-        Rental rental = rentalRepository.findByUserId(userId).get();
-
-        books.forEach(bookid -> rental.overdueBook(bookid));
-        rental.makeRentUnable();
-        return rentalRepository.save(rental);
-    }
-
-
-    /**
-     * 연체된 책 반납하기 (여러권)
+     * 연체된 책 반납하기
      *
      * @param userid
      * @param book
@@ -245,8 +213,8 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public void savePoints(Long userId, int bookCnt) throws ExecutionException, InterruptedException, JsonProcessingException {
-        rentalProducer.savePoints(userId, bookCnt * pointPerBooks);
+    public void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException {
+        rentalProducer.savePoints(userId, pointPerBooks);
     }
 
     @Override
