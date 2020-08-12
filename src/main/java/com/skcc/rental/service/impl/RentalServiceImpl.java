@@ -109,10 +109,9 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Transactional
-    public RentedItem rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
+    public Rental rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
         log.debug("Rent Books by : ", userId, " Book List : ", book);
         Rental rental = rentalRepository.findByUserId(userId).get();
-        RentedItem rentedItem = new RentedItem();
         rental.checkRentalAvailable();
 
         rental = rental.rentBook(book.getId(), book.getTitle());
@@ -120,9 +119,9 @@ public class RentalServiceImpl implements RentalService {
 
         updateBookStatus(book.getId(), "UNAVAILABLE"); //send to book service
         updateBookCatalog(book.getId(), "RENT_BOOK"); //send to book catalog service
-
         savePoints(userId); //send to user service
-        return rentedItem;
+
+        return rental;
 
     }
 
@@ -132,7 +131,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     /**
-     * 여러 권 반납하기
+     * 도서 반납하기
      *
      * @param userId
      * @param bookId
@@ -152,6 +151,22 @@ public class RentalServiceImpl implements RentalService {
     }
 
     /**
+     * 연체처리
+     *
+     * @param rentalId
+     * @param bookId
+     * @return
+     */
+    @Override
+    public Long beOverdueBook(Long rentalId, Long bookId) {
+        Rental rental = rentalRepository.findById(rentalId).get();
+        rental= rental.overdueBook(bookId);
+        rental = rental.makeRentUnable();
+        rentalRepository.save(rental);
+        return bookId;
+    }
+
+    /**
      * 연체된 책 반납하기
      *
      * @param userid
@@ -159,7 +174,7 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Override
-    public Rental returnOverdueBooks(Long userid, Long book) throws ExecutionException , InterruptedException , JsonProcessingException{
+    public Rental returnOverdueBook(Long userid, Long book) throws ExecutionException , InterruptedException , JsonProcessingException{
         Rental rental = rentalRepository.findByUserId(userid).get();
 
         rental = rental.returnOverdueBook(book);
@@ -171,7 +186,10 @@ public class RentalServiceImpl implements RentalService {
     }
 
 
-
+    /**
+     * @param userId
+     * 연체 해제하기
+     */
     @Override
     public Rental releaseOverdue(Long userId) {
         Rental rental = rentalRepository.findByUserId(userId).get();
@@ -204,14 +222,6 @@ public class RentalServiceImpl implements RentalService {
         rentalProducer.updateBookCatalogStatus(bookId, eventType);
     }
 
-    @Override
-    public Long beOverdueBooks(Long rentalId, Long bookId) {
-        Rental rental = rentalRepository.findById(rentalId).get();
-        rental= rental.overdueBook(bookId);
-        rental = rental.makeRentUnable();
-        rentalRepository.save(rental);
-        return bookId;
-    }
 
 
 

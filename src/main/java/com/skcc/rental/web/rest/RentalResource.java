@@ -158,7 +158,7 @@ public class RentalResource {
      * @throws JsonProcessingException
      */
     @PostMapping("/rentals/{userid}/RentedItem/{book}")
-    public ResponseEntity<RentedItemDTO> rentBooks(@PathVariable("userid") Long userid, @PathVariable("book") Long bookId)
+    public ResponseEntity<RentalDTO> rentBooks(@PathVariable("userid") Long userid, @PathVariable("book") Long bookId)
         throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
         log.debug("rent book request");
 
@@ -166,9 +166,9 @@ public class RentalResource {
         BookInfoDTO bookInfoDTO = bookInfoResult.getBody();
         log.debug("book info list", bookInfoDTO.toString());
 
-        RentedItem rentedItem= rentalService.rentBook(userid, bookInfoDTO);
-        RentedItemDTO rentedItemDTO = rentedItemMapper.toDto(rentedItem);
-        return ResponseEntity.ok().body(rentedItemDTO);
+        Rental rental= rentalService.rentBook(userid, bookInfoDTO);
+        RentalDTO rentalDTO = rentalMapper.toDto(rental);
+        return ResponseEntity.ok().body(rentalDTO);
 
     }
 
@@ -197,11 +197,10 @@ public class RentalResource {
      * @param bookId
      *
      */
-
     @PostMapping("/rentals/{rentalId}/OverdueItem/{bookId}")
-    public ResponseEntity BeOverdue(@PathVariable("rentalId")Long rentalId, @PathVariable("bookId")Long bookId){
-        Long result = rentalService.beOverdueBooks(rentalId, bookId);
-        return ResponseEntity.ok().body(result);
+    public ResponseEntity<Void> BeOverdue(@PathVariable("rentalId")Long rentalId, @PathVariable("bookId")Long bookId){
+         rentalService.beOverdueBook(rentalId, bookId);
+        return ResponseEntity.ok().build();
     }
 
 
@@ -214,7 +213,7 @@ public class RentalResource {
      */
     @DeleteMapping("/rentals/{userid}/OverdueItem/{book}")
     public ResponseEntity returnOverdueBook(@PathVariable("userid") Long userid, @PathVariable("book") Long book) throws InterruptedException, ExecutionException, JsonProcessingException {
-        Rental rental = rentalService.returnOverdueBooks(userid, book);
+        Rental rental = rentalService.returnOverdueBook(userid, book);
         RentalDTO result = rentalMapper.toDto(rental);
         return ResponseEntity.ok().body(result);
     }
