@@ -1,11 +1,11 @@
 package com.skcc.rental.web.rest;
 
-import com.skcc.rental.domain.Rental;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.service.RentedItemService;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.RentedItemDTO;
 
+import com.skcc.rental.web.rest.mapper.RentedItemMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -39,10 +39,11 @@ public class RentedItemResource {
     private String applicationName;
 
     private final RentedItemService rentedItemService;
-    private final RentalService rentalService;
-    public RentedItemResource(RentedItemService rentedItemService, RentalService rentalService) {
+    private final RentedItemMapper rentedItemMapper;
+    public RentedItemResource(RentedItemService rentedItemService, RentedItemMapper rentedItemMapper) {
         this.rentedItemService = rentedItemService;
-        this.rentalService = rentalService;
+        this.rentedItemMapper = rentedItemMapper;
+
     }
 
     /**
@@ -58,7 +59,7 @@ public class RentedItemResource {
         if (rentedItemDTO.getId() != null) {
             throw new BadRequestAlertException("A new rentedItem cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        RentedItemDTO result = rentedItemService.save(rentedItemDTO);
+        RentedItemDTO result = rentedItemMapper.toDto(rentedItemService.save(rentedItemMapper.toEntity(rentedItemDTO)));
         return ResponseEntity.created(new URI("/api/rented-items/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -79,7 +80,7 @@ public class RentedItemResource {
         if (rentedItemDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        RentedItemDTO result = rentedItemService.save(rentedItemDTO);
+        RentedItemDTO result = rentedItemMapper.toDto(rentedItemService.save(rentedItemMapper.toEntity(rentedItemDTO)));
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, rentedItemDTO.getId().toString()))
             .body(result);
@@ -94,7 +95,7 @@ public class RentedItemResource {
     @GetMapping("/rented-items")
     public ResponseEntity<List<RentedItemDTO>> getAllRentedItems(Pageable pageable) {
         log.debug("REST request to get a page of RentedItems");
-        Page<RentedItemDTO> page = rentedItemService.findAll(pageable);
+        Page<RentedItemDTO> page = rentedItemService.findAll(pageable).map(rentedItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -108,7 +109,7 @@ public class RentedItemResource {
     @GetMapping("/rented-items/{id}")
     public ResponseEntity<RentedItemDTO> getRentedItem(@PathVariable Long id) {
         log.debug("REST request to get RentedItem : {}", id);
-        Optional<RentedItemDTO> rentedItemDTO = rentedItemService.findOne(id);
+        Optional<RentedItemDTO> rentedItemDTO = rentedItemService.findOne(id).map(rentedItemMapper::toDto);
         return ResponseUtil.wrapOrNotFound(rentedItemDTO);
     }
 
@@ -127,13 +128,13 @@ public class RentedItemResource {
 
     @GetMapping("/rented-items/title/{title}")
     public ResponseEntity<List<RentedItemDTO>> loadRentedItemsByTitle(@PathVariable("title")String title, Pageable pageable){
-        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findByTitle(title, pageable);
+        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findByTitle(title, pageable).map(rentedItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), rentedItemDTOS);
         return ResponseEntity.ok().headers(headers).body(rentedItemDTOS.getContent());
     }
     @GetMapping("/rented-items/rental/{rentalId}")
     public ResponseEntity<List<RentedItemDTO>> loadRentedItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
-        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findRentedItemsByRental(rentalId, pageable);
+        Page<RentedItemDTO> rentedItemDTOS = rentedItemService.findRentedItemsByRental(rentalId, pageable).map(rentedItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), rentedItemDTOS);
         return ResponseEntity.ok().headers(headers).body(rentedItemDTOS.getContent());
     }

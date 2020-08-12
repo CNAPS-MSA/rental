@@ -1,7 +1,7 @@
 package com.skcc.rental.domain;
 
 import com.skcc.rental.domain.enumeration.RentalStatus;
-import com.skcc.rental.exception.RentUnavailableException;
+import com.skcc.rental.web.rest.errors.RentUnavailableException;
 import lombok.Data;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;

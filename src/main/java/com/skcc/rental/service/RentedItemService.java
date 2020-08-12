@@ -17,10 +17,10 @@ public interface RentedItemService {
     /**
      * Save a rentedItem.
      *
-     * @param rentedItemDTO the entity to save.
+     * @param rentedItem the entity to save.
      * @return the persisted entity.
      */
-    RentedItemDTO save(RentedItemDTO rentedItemDTO);
+    RentedItem save(RentedItem rentedItem);
 
     /**
      * Get all the rentedItems.
@@ -28,7 +28,7 @@ public interface RentedItemService {
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<RentedItemDTO> findAll(Pageable pageable);
+    Page<RentedItem> findAll(Pageable pageable);
 
     /**
      * Get the "id" rentedItem.
@@ -36,7 +36,7 @@ public interface RentedItemService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<RentedItemDTO> findOne(Long id);
+    Optional<RentedItem> findOne(Long id);
 
     /**
      * Delete the "id" rentedItem.
@@ -48,8 +48,8 @@ public interface RentedItemService {
 
     List<RentedItem> findAllForManage();
 
-    Page<RentedItemDTO> findByTitle(String title, Pageable pageable);
+    Page<RentedItem> findByTitle(String title, Pageable pageable);
 
 
-    Page<RentedItemDTO> findRentedItemsByRental(Long rentalId, Pageable pageable);
+    Page<RentedItem> findRentedItemsByRental(Long rentalId, Pageable pageable);
 }

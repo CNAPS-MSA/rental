@@ -1,5 +1,6 @@
 package com.skcc.rental.service;
 
+import com.skcc.rental.domain.OverdueItem;
 import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 
 import org.springframework.data.domain.Page;
@@ -15,10 +16,10 @@ public interface OverdueItemService {
     /**
      * Save a overdueItem.
      *
-     * @param overdueItemDTO the entity to save.
+     * @param overdueItem the entity to save.
      * @return the persisted entity.
      */
-    OverdueItemDTO save(OverdueItemDTO overdueItemDTO);
+    OverdueItem save(OverdueItem overdueItem);
 
     /**
      * Get all the overdueItems.
@@ -26,7 +27,7 @@ public interface OverdueItemService {
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<OverdueItemDTO> findAll(Pageable pageable);
+    Page<OverdueItem> findAll(Pageable pageable);
 
     /**
      * Get the "id" overdueItem.
@@ -34,7 +35,7 @@ public interface OverdueItemService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<OverdueItemDTO> findOne(Long id);
+    Optional<OverdueItem> findOne(Long id);
 
     /**
      * Delete the "id" overdueItem.
@@ -43,5 +44,5 @@ public interface OverdueItemService {
      */
     void delete(Long id);
 
-    Page<OverdueItemDTO> findOverdueItemsByRental(Long rentalId, Pageable pageable);
+    Page<OverdueItem> findOverdueItemsByRental(Long rentalId, Pageable pageable);
 }

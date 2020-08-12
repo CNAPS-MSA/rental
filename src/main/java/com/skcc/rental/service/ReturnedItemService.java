@@ -1,5 +1,6 @@
 package com.skcc.rental.service;
 
+import com.skcc.rental.domain.ReturnedItem;
 import com.skcc.rental.web.rest.dto.ReturnedItemDTO;
 
 import org.springframework.data.domain.Page;
@@ -18,7 +19,7 @@ public interface ReturnedItemService {
      * @param returnedItemDTO the entity to save.
      * @return the persisted entity.
      */
-    ReturnedItemDTO save(ReturnedItemDTO returnedItemDTO);
+    ReturnedItem save(ReturnedItem returnedItem);
 
     /**
      * Get all the returnedItems.
@@ -26,7 +27,7 @@ public interface ReturnedItemService {
      * @param pageable the pagination information.
      * @return the list of entities.
      */
-    Page<ReturnedItemDTO> findAll(Pageable pageable);
+    Page<ReturnedItem> findAll(Pageable pageable);
 
     /**
      * Get the "id" returnedItem.
@@ -34,7 +35,7 @@ public interface ReturnedItemService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    Optional<ReturnedItemDTO> findOne(Long id);
+    Optional<ReturnedItem> findOne(Long id);
 
     /**
      * Delete the "id" returnedItem.
@@ -43,5 +44,5 @@ public interface ReturnedItemService {
      */
     void delete(Long id);
 
-    Page<ReturnedItemDTO> findReturnedItemsByRental(Long rentalId, Pageable pageable);
+    Page<ReturnedItem> findReturnedItemsByRental(Long rentalId, Pageable pageable);
 }

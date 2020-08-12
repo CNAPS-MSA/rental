@@ -40,15 +40,15 @@ public class RentedItemServiceImpl implements RentedItemService {
     /**
      * Save a rentedItem.
      *
-     * @param rentedItemDTO the entity to save.
+     * @param rentedItem the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public RentedItemDTO save(RentedItemDTO rentedItemDTO) {
-        log.debug("Request to save RentedItem : {}", rentedItemDTO);
-        RentedItem rentedItem = rentedItemMapper.toEntity(rentedItemDTO);
-        rentedItem = rentedItemRepository.save(rentedItem);
-        return rentedItemMapper.toDto(rentedItem);
+    public RentedItem save(RentedItem rentedItem) {
+        log.debug("Request to save RentedItem : {}", rentedItem);
+
+        return rentedItemRepository.save(rentedItem);
+
     }
 
     /**
@@ -59,10 +59,9 @@ public class RentedItemServiceImpl implements RentedItemService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<RentedItemDTO> findAll(Pageable pageable) {
+    public Page<RentedItem> findAll(Pageable pageable) {
         log.debug("Request to get all RentedItems");
-        return rentedItemRepository.findAll(pageable)
-            .map(rentedItemMapper::toDto);
+        return rentedItemRepository.findAll(pageable);
     }
 
     /**
@@ -73,10 +72,9 @@ public class RentedItemServiceImpl implements RentedItemService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<RentedItemDTO> findOne(Long id) {
+    public Optional<RentedItem> findOne(Long id) {
         log.debug("Request to get RentedItem : {}", id);
-        return rentedItemRepository.findById(id)
-            .map(rentedItemMapper::toDto);
+        return rentedItemRepository.findById(id);
     }
 
     /**
@@ -96,15 +94,14 @@ public class RentedItemServiceImpl implements RentedItemService {
     }
 
     @Override
-    public Page<RentedItemDTO> findByTitle(String title, Pageable pageable) {
-        return rentedItemRepository.findByBookTitleContaining(title, pageable)
-            .map(rentedItemMapper::toDto);
+    public Page<RentedItem> findByTitle(String title, Pageable pageable) {
+        return rentedItemRepository.findByBookTitleContaining(title, pageable);
     }
 
     @Override
-    public Page<RentedItemDTO> findRentedItemsByRental(Long rentalId, Pageable pageable) {
+    public Page<RentedItem> findRentedItemsByRental(Long rentalId, Pageable pageable) {
         Rental rental = rentalService.findOne(rentalId).get();
-        return rentedItemRepository.findByRental(rental, pageable).map(rentedItemMapper::toDto);
+        return rentedItemRepository.findByRental(rental, pageable);
     }
 
 

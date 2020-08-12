@@ -1,10 +1,10 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.service.ReturnedItemService;
-import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.ReturnedItemDTO;
 
+import com.skcc.rental.web.rest.mapper.ReturnedItemMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -38,9 +38,10 @@ public class ReturnedItemResource {
     private String applicationName;
 
     private final ReturnedItemService returnedItemService;
-
-    public ReturnedItemResource(ReturnedItemService returnedItemService) {
+    private final ReturnedItemMapper returnedItemMapper;
+    public ReturnedItemResource(ReturnedItemService returnedItemService, ReturnedItemMapper returnedItemMapper) {
         this.returnedItemService = returnedItemService;
+        this.returnedItemMapper = returnedItemMapper;
     }
 
     /**
@@ -56,7 +57,7 @@ public class ReturnedItemResource {
         if (returnedItemDTO.getId() != null) {
             throw new BadRequestAlertException("A new returnedItem cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        ReturnedItemDTO result = returnedItemService.save(returnedItemDTO);
+        ReturnedItemDTO result = returnedItemMapper.toDto(returnedItemService.save(returnedItemMapper.toEntity(returnedItemDTO)));
         return ResponseEntity.created(new URI("/api/returned-items/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -77,7 +78,7 @@ public class ReturnedItemResource {
         if (returnedItemDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        ReturnedItemDTO result = returnedItemService.save(returnedItemDTO);
+        ReturnedItemDTO result = returnedItemMapper.toDto(returnedItemService.save(returnedItemMapper.toEntity(returnedItemDTO)));
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, returnedItemDTO.getId().toString()))
             .body(result);
@@ -92,7 +93,7 @@ public class ReturnedItemResource {
     @GetMapping("/returned-items")
     public ResponseEntity<List<ReturnedItemDTO>> getAllReturnedItems(Pageable pageable) {
         log.debug("REST request to get a page of ReturnedItems");
-        Page<ReturnedItemDTO> page = returnedItemService.findAll(pageable);
+        Page<ReturnedItemDTO> page = returnedItemService.findAll(pageable).map(returnedItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -106,7 +107,7 @@ public class ReturnedItemResource {
     @GetMapping("/returned-items/{id}")
     public ResponseEntity<ReturnedItemDTO> getReturnedItem(@PathVariable Long id) {
         log.debug("REST request to get ReturnedItem : {}", id);
-        Optional<ReturnedItemDTO> returnedItemDTO = returnedItemService.findOne(id);
+        Optional<ReturnedItemDTO> returnedItemDTO = returnedItemService.findOne(id).map(returnedItemMapper::toDto);
         return ResponseUtil.wrapOrNotFound(returnedItemDTO);
     }
 
@@ -124,7 +125,7 @@ public class ReturnedItemResource {
     }
     @GetMapping("/returned-items/rental/{rentalId}")
     public ResponseEntity<List<ReturnedItemDTO>> loadReturnedItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
-        Page<ReturnedItemDTO> returnedItemDTOS = returnedItemService.findReturnedItemsByRental(rentalId, pageable);
+        Page<ReturnedItemDTO> returnedItemDTOS = returnedItemService.findReturnedItemsByRental(rentalId, pageable).map(returnedItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), returnedItemDTOS);
         return ResponseEntity.ok().headers(headers).body(returnedItemDTOS.getContent());
     }

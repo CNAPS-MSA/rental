@@ -1,4 +1,4 @@
-package com.skcc.rental.exception;
+package com.skcc.rental.web.rest.errors;
 
 import lombok.Getter;
 import lombok.Setter;
