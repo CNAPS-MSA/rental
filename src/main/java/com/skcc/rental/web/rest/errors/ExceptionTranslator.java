@@ -1,14 +1,18 @@
 package com.skcc.rental.web.rest.errors;
 
+
 import io.github.jhipster.web.util.HeaderUtil;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.zalando.problem.DefaultProblem;
 import org.zalando.problem.Problem;
@@ -21,6 +25,9 @@ import org.zalando.problem.violations.ConstraintViolationProblem;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -103,5 +110,31 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
             .with(MESSAGE_KEY, ErrorConstants.ERR_CONCURRENCY_FAILURE)
             .build();
         return create(ex, problem, request);
+    }
+
+    /* **
+     *
+     * Rent Unavailable Exception
+     *
+     * **/
+
+    @ExceptionHandler(RentUnavailableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiErrorDetails> handleRentUnavailableException(RentUnavailableException rue){
+        ApiErrorDetails errorDetails = new ApiErrorDetails();
+        errorDetails.setTimeStamp(LocalDateTime.now());
+        errorDetails.setCode(1002);
+        errorDetails.setMessage(rue.getMessage());
+        return new ResponseEntity(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FeignClientException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiErrorDetails> handleReleaseOverdueUnavailableException(FeignClientException fce){
+        ApiErrorDetails errorDetails = new ApiErrorDetails();
+        errorDetails.setTimeStamp(LocalDateTime.now());
+        errorDetails.setCode(1001);
+        errorDetails.setMessage(fce.getErrorMessage());
+        return new ResponseEntity(errorDetails, HttpStatus.BAD_REQUEST);
     }
 }

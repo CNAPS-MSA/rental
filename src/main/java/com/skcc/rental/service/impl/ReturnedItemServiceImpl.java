@@ -39,15 +39,14 @@ public class ReturnedItemServiceImpl implements ReturnedItemService {
     /**
      * Save a returnedItem.
      *
-     * @param returnedItemDTO the entity to save.
+     * @param returnedItem the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public ReturnedItemDTO save(ReturnedItemDTO returnedItemDTO) {
-        log.debug("Request to save ReturnedItem : {}", returnedItemDTO);
-        ReturnedItem returnedItem = returnedItemMapper.toEntity(returnedItemDTO);
-        returnedItem = returnedItemRepository.save(returnedItem);
-        return returnedItemMapper.toDto(returnedItem);
+    public ReturnedItem save(ReturnedItem returnedItem) {
+        log.debug("Request to save ReturnedItem : {}", returnedItem);
+        return returnedItemRepository.save(returnedItem);
+
     }
 
     /**
@@ -58,10 +57,9 @@ public class ReturnedItemServiceImpl implements ReturnedItemService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<ReturnedItemDTO> findAll(Pageable pageable) {
+    public Page<ReturnedItem> findAll(Pageable pageable) {
         log.debug("Request to get all ReturnedItems");
-        return returnedItemRepository.findAll(pageable)
-            .map(returnedItemMapper::toDto);
+        return returnedItemRepository.findAll(pageable);
     }
 
     /**
@@ -72,10 +70,9 @@ public class ReturnedItemServiceImpl implements ReturnedItemService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<ReturnedItemDTO> findOne(Long id) {
+    public Optional<ReturnedItem> findOne(Long id) {
         log.debug("Request to get ReturnedItem : {}", id);
-        return returnedItemRepository.findById(id)
-            .map(returnedItemMapper::toDto);
+        return returnedItemRepository.findById(id);
     }
 
     /**
@@ -90,9 +87,9 @@ public class ReturnedItemServiceImpl implements ReturnedItemService {
     }
 
     @Override
-    public Page<ReturnedItemDTO> findReturnedItemsByRental(Long rentalId, Pageable pageable) {
+    public Page<ReturnedItem> findReturnedItemsByRental(Long rentalId, Pageable pageable) {
         Rental rental = rentalService.findOne(rentalId).get();
-        return returnedItemRepository.findByRental(rental, pageable).map(returnedItemMapper::toDto);
+        return returnedItemRepository.findByRental(rental, pageable);
 
     }
 }

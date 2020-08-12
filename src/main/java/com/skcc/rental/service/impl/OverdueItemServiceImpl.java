@@ -39,15 +39,14 @@ public class OverdueItemServiceImpl implements OverdueItemService {
     /**
      * Save a overdueItem.
      *
-     * @param overdueItemDTO the entity to save.
+     * @param overdueItem the entity to save.
      * @return the persisted entity.
      */
     @Override
-    public OverdueItemDTO save(OverdueItemDTO overdueItemDTO) {
-        log.debug("Request to save OverdueItem : {}", overdueItemDTO);
-        OverdueItem overdueItem = overdueItemMapper.toEntity(overdueItemDTO);
-        overdueItem = overdueItemRepository.save(overdueItem);
-        return overdueItemMapper.toDto(overdueItem);
+    public OverdueItem save(OverdueItem overdueItem) {
+        log.debug("Request to save OverdueItem : {}", overdueItem);
+        return overdueItemRepository.save(overdueItem);
+
     }
 
     /**
@@ -58,10 +57,9 @@ public class OverdueItemServiceImpl implements OverdueItemService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<OverdueItemDTO> findAll(Pageable pageable) {
+    public Page<OverdueItem> findAll(Pageable pageable) {
         log.debug("Request to get all OverdueItems");
-        return overdueItemRepository.findAll(pageable)
-            .map(overdueItemMapper::toDto);
+        return overdueItemRepository.findAll(pageable);
     }
 
     /**
@@ -72,10 +70,9 @@ public class OverdueItemServiceImpl implements OverdueItemService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<OverdueItemDTO> findOne(Long id) {
+    public Optional<OverdueItem> findOne(Long id) {
         log.debug("Request to get OverdueItem : {}", id);
-        return overdueItemRepository.findById(id)
-            .map(overdueItemMapper::toDto);
+        return overdueItemRepository.findById(id);
     }
 
     /**
@@ -90,8 +87,8 @@ public class OverdueItemServiceImpl implements OverdueItemService {
     }
 
     @Override
-    public Page<OverdueItemDTO> findOverdueItemsByRental(Long rentalId, Pageable pageable) {
+    public Page<OverdueItem> findOverdueItemsByRental(Long rentalId, Pageable pageable) {
         Rental rental = rentalService.findOne(rentalId).get();
-        return overdueItemRepository.findByRental(rental, pageable).map(overdueItemMapper::toDto);
+        return overdueItemRepository.findByRental(rental, pageable);
     }
 }

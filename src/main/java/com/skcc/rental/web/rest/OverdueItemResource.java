@@ -1,10 +1,10 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.service.OverdueItemService;
-import com.skcc.rental.web.rest.dto.RentedItemDTO;
 import com.skcc.rental.web.rest.errors.BadRequestAlertException;
 import com.skcc.rental.web.rest.dto.OverdueItemDTO;
 
+import com.skcc.rental.web.rest.mapper.OverdueItemMapper;
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -38,9 +38,10 @@ public class OverdueItemResource {
     private String applicationName;
 
     private final OverdueItemService overdueItemService;
-
-    public OverdueItemResource(OverdueItemService overdueItemService) {
+    private final OverdueItemMapper overdueItemMapper;
+    public OverdueItemResource(OverdueItemService overdueItemService, OverdueItemMapper overdueItemMapper) {
         this.overdueItemService = overdueItemService;
+        this.overdueItemMapper = overdueItemMapper;
     }
 
     /**
@@ -56,7 +57,7 @@ public class OverdueItemResource {
         if (overdueItemDTO.getId() != null) {
             throw new BadRequestAlertException("A new overdueItem cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        OverdueItemDTO result = overdueItemService.save(overdueItemDTO);
+        OverdueItemDTO result = overdueItemMapper.toDto(overdueItemService.save(overdueItemMapper.toEntity(overdueItemDTO)));
         return ResponseEntity.created(new URI("/api/overdue-items/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -77,7 +78,7 @@ public class OverdueItemResource {
         if (overdueItemDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        OverdueItemDTO result = overdueItemService.save(overdueItemDTO);
+        OverdueItemDTO result = overdueItemMapper.toDto(overdueItemService.save(overdueItemMapper.toEntity(overdueItemDTO)));
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, overdueItemDTO.getId().toString()))
             .body(result);
@@ -92,7 +93,7 @@ public class OverdueItemResource {
     @GetMapping("/overdue-items")
     public ResponseEntity<List<OverdueItemDTO>> getAllOverdueItems(Pageable pageable) {
         log.debug("REST request to get a page of OverdueItems");
-        Page<OverdueItemDTO> page = overdueItemService.findAll(pageable);
+        Page<OverdueItemDTO> page = overdueItemService.findAll(pageable).map(overdueItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -106,7 +107,7 @@ public class OverdueItemResource {
     @GetMapping("/overdue-items/{id}")
     public ResponseEntity<OverdueItemDTO> getOverdueItem(@PathVariable Long id) {
         log.debug("REST request to get OverdueItem : {}", id);
-        Optional<OverdueItemDTO> overdueItemDTO = overdueItemService.findOne(id);
+        Optional<OverdueItemDTO> overdueItemDTO = overdueItemService.findOne(id).map(overdueItemMapper::toDto);
         return ResponseUtil.wrapOrNotFound(overdueItemDTO);
     }
 
@@ -124,7 +125,7 @@ public class OverdueItemResource {
     }
     @GetMapping("/overdue-items/rental/{rentalId}")
     public ResponseEntity<List<OverdueItemDTO>> loadOverdueItemsByRental(@PathVariable("rentalId")Long rentalId, Pageable pageable){
-        Page<OverdueItemDTO> overdueItemDTOS = overdueItemService.findOverdueItemsByRental(rentalId, pageable);
+        Page<OverdueItemDTO> overdueItemDTOS = overdueItemService.findOverdueItemsByRental(rentalId, pageable).map(overdueItemMapper::toDto);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), overdueItemDTOS);
         return ResponseEntity.ok().headers(headers).body(overdueItemDTOS.getContent());
     }

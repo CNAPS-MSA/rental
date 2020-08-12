@@ -4,14 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
-import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import com.skcc.rental.web.rest.dto.LatefeeDTO;
-import com.skcc.rental.web.rest.dto.RentedItemDTO;
+import com.skcc.rental.web.rest.errors.RentUnavailableException;
+import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -50,7 +48,12 @@ public interface RentalService {
      * @param id the id of the entity.
      */
     void delete(Long id);
-
+    /**
+     *
+     * User 생성시 Rental 생성
+     *
+     *
+     * **/
     Rental createRental(UserIdCreated userIdCreated);
 
     /****
@@ -60,7 +63,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    RentedItem rentBook(Long userId, BookInfoDTO book);
+    RentedItem rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException;
 
     /****
      *
@@ -69,26 +72,42 @@ public interface RentalService {
      * 책 반납하기
      *
      * ****/
-
-    Optional<Rental> findRentalByUser(Long userId);
-
-    Rental returnBook(Long userId, Long bookIds);
-
-    void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
-
-    void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException;
-
-    Rental returnOverdueBooks(Long userid, Long book);
-
+    Rental returnBook(Long userId, Long bookIds) throws ExecutionException, InterruptedException, JsonProcessingException;
+    /****
+     *
+     * Business Logic
+     *
+     * 연체 도서 반납하기
+     *
+     * ****/
+    Rental returnOverdueBooks(Long userid, Long book) throws ExecutionException, InterruptedException, JsonProcessingException;
+    /****
+     *
+     * Business Logic
+     *
+     * 연체 상태 해제하기
+     *
+     * ****/
     Rental releaseOverdue(Long userId);
-
-    LatefeeDTO getLatefee(Long userId);
-
-    void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
-
+    /****
+     *
+     * Business Logic
+     *
+     * 연체 상태로 변경
+     *
+     * ****/
     Long beOverdueBooks(Long rentalId, Long bookId);
 
+    //kafka - 책 상태 변경 - book service
+    void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
+    //kafka - 포인트 적립  - user service(gateway)
+    void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException;
+    //kafka - 책 상태 변경  - bookCatalog service
+    void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
+    //Rental 조회
+    Optional<Rental> findRentalByUser(Long userId);
+    //연체료 조회
+    int findLatefee(Long userId);
 
 
-    //ResponseEntity usePoint
 }

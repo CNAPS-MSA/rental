@@ -1,29 +1,24 @@
 package com.skcc.rental.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.skcc.rental.adaptor.BookClient;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.skcc.rental.adaptor.RentalProducer;
 import com.skcc.rental.adaptor.UserClient;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
+import com.skcc.rental.web.rest.dto.LatefeeDTO;
+import com.skcc.rental.web.rest.errors.RentUnavailableException;
 import com.skcc.rental.repository.RentalRepository;
-import com.skcc.rental.repository.RentedItemRepository;
-import com.skcc.rental.repository.ReturnedItemRepository;
 import com.skcc.rental.service.RentalService;
 import com.skcc.rental.web.rest.dto.BookInfoDTO;
-import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -40,12 +35,15 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalProducer rentalProducer;
 
+    private final UserClient userClient;
+
     private int pointPerBooks = 30;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer, UserClient userClient) {
         this.rentalRepository = rentalRepository;
         this.rentalProducer = rentalProducer;
 
+        this.userClient = userClient;
     }
 
     /**
@@ -104,38 +102,28 @@ public class RentalServiceImpl implements RentalService {
     }
 
     /**
-     * 여러권 대여하기
+     * 도서 대여하기
      *
      * @param userId
      * @param book
      * @return
      */
     @Transactional
-    public RentedItem rentBook(Long userId, BookInfoDTO book) {
+    public RentedItem rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
         log.debug("Rent Books by : ", userId, " Book List : ", book);
         Rental rental = rentalRepository.findByUserId(userId).get();
         RentedItem rentedItem = new RentedItem();
-        try {
-            Boolean checkRentalStatus = rental.checkRentalAvailable();
-            if (checkRentalStatus) {
-                rental = rental.rentBook(book.getId(), book.getTitle());
-                rentalRepository.save(rental);
+        rental.checkRentalAvailable();
 
-                try{
-                    updateBookStatus(book.getId(), "UNAVAILABLE");
-                    updateBookCatalog(book.getId(), "RENT_BOOK");
-                } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+        rental = rental.rentBook(book.getId(), book.getTitle());
+        rentalRepository.save(rental);
 
-                savePoints(userId);
-            }
-        } catch (Exception e) {
-            String errorMessage = e.getMessage();
-            System.out.println(errorMessage);
-            return null;
-        }
+        updateBookStatus(book.getId(), "UNAVAILABLE"); //send to book service
+        updateBookCatalog(book.getId(), "RENT_BOOK"); //send to book catalog service
+
+        savePoints(userId); //send to user service
         return rentedItem;
+
     }
 
     @Override
@@ -151,19 +139,14 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Transactional
-    public Rental returnBook(Long userId, Long bookId) {
+    public Rental returnBook(Long userId, Long bookId) throws ExecutionException, InterruptedException ,JsonProcessingException {
         log.debug("Return books by ", userId, " Return Book List : ", bookId);
         Rental rental = rentalRepository.findByUserId(userId).get();
         rental = rental.returnbook(bookId);
         rental = rentalRepository.save(rental);
 
-
-        try {
-                updateBookStatus(bookId, "AVAILABLE");
-                updateBookCatalog(bookId, "RETURN_BOOK");
-        } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-                e.printStackTrace();
-        }
+        updateBookStatus(bookId, "AVAILABLE");
+        updateBookCatalog(bookId, "RETURN_BOOK");
 
         return rental;
     }
@@ -176,16 +159,13 @@ public class RentalServiceImpl implements RentalService {
      * @return
      */
     @Override
-    public Rental returnOverdueBooks(Long userid, Long book) {
+    public Rental returnOverdueBooks(Long userid, Long book) throws ExecutionException , InterruptedException , JsonProcessingException{
         Rental rental = rentalRepository.findByUserId(userid).get();
 
         rental = rental.returnOverdueBook(book);
-        try {
-            updateBookStatus(book, "AVAILABLE");
-            updateBookCatalog(book, "RETURN_BOOK");
-        } catch (ExecutionException | InterruptedException | JsonProcessingException e) {
-            e.printStackTrace();
-        }
+
+        updateBookStatus(book, "AVAILABLE");
+        updateBookCatalog(book, "RETURN_BOOK");
 
         return rentalRepository.save(rental);
     }
@@ -199,13 +179,15 @@ public class RentalServiceImpl implements RentalService {
         return rentalRepository.save(rental);
     }
 
+
+
     @Override
-    public LatefeeDTO getLatefee(Long userId) {
-        LatefeeDTO latefeeDTO = new LatefeeDTO();
-        latefeeDTO.setLatefee(rentalRepository.findByUserId(userId).get().getLateFee());
-        latefeeDTO.setUserId(userId);
-        return latefeeDTO;
+    public int findLatefee(Long userId) {
+        return rentalRepository.findByUserId(userId).get().getLateFee();
     }
+
+
+
 
     @Override
     public void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {

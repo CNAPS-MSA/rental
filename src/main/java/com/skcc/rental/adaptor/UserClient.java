@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name= "gateway", configuration = {FeignConfiguration.class})
 public interface UserClient {
-    @PutMapping("/api/usepoints")
+    @PutMapping("/api/users/usepoints")
     ResponseEntity usePoint(@RequestBody LatefeeDTO latefeeDTO);
 }
