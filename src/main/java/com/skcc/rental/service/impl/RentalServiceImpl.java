@@ -188,7 +188,7 @@ public class RentalServiceImpl implements RentalService {
 
     /**
      * @param userId
-     * 연체 해제하기
+     * 대여불가 해제하기
      */
     @Override
     public Rental releaseOverdue(Long userId) {

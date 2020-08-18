@@ -218,7 +218,12 @@ public class RentalResource {
         return ResponseEntity.ok().body(result);
     }
 
-
+    /**
+     * 대여불가 해제하기
+     *
+     * @param userId
+     * @return
+     */
     @PutMapping("/rentals/release-overdue/user/{userId}")
     public ResponseEntity releaseOverdue(@PathVariable("userId") Long userId)  {
         LatefeeDTO latefeeDTO = new LatefeeDTO();
