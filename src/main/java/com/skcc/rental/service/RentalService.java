@@ -63,7 +63,7 @@ public interface RentalService {
      * 책 대여하기
      *
      * ****/
-    Rental rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException;
+    Rental rentBook(Long userId, Long bookId, String bookTitle) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException;
 
     /****
      *
@@ -98,13 +98,7 @@ public interface RentalService {
      * ****/
     Long beOverdueBook(Long rentalId, Long bookId);
 
-    //kafka - 책 상태 변경 - book service
-    void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException;
-    //kafka - 포인트 적립  - user service(gateway)
-    void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException;
-    //kafka - 책 상태 변경  - bookCatalog service
-    void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException;
-    //Rental 조회
+      //Rental 조회
     Optional<Rental> findRentalByUser(Long userId);
     //연체료 조회
     int findLatefee(Long userId);

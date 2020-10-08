@@ -8,18 +8,16 @@ import com.skcc.rental.domain.event.PointChanged;
 import com.skcc.rental.domain.event.StockChanged;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 
 @Service
-public class RentalProducer {
+public class RentalProducer implements RentalProducerService{
 
     private final Logger log = LoggerFactory.getLogger(RentalProducer.class);
 
@@ -53,31 +51,28 @@ public class RentalProducer {
      * *******/
 
     //책 상태 업데이트
-    public PublishResult updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {
+    public void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {
 
         StockChanged stockChanged = new StockChanged(bookId, bookStatus);
         String message = objectMapper.writeValueAsString(stockChanged);
-        RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_BOOK, message)).get();
-        return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
+        producer.send(new ProducerRecord<>(TOPIC_BOOK, message)).get();
 
     }
 
     // 권당 포인트 적립
-    public PublishResult savePoints(Long userId, int points) throws ExecutionException, InterruptedException, JsonProcessingException {
+    public void savePoints(Long userId, int points) throws ExecutionException, InterruptedException, JsonProcessingException {
         PointChanged pointChanged = new PointChanged(userId, points);
         String message = objectMapper.writeValueAsString(pointChanged);
-        RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_POINT, message)).get();
-        return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
+        producer.send(new ProducerRecord<>(TOPIC_POINT, message)).get();
     }
 
     //대여, 반납  시 book catalog의 책 상태 업데이트
-    public PublishResult updateBookCatalogStatus(Long bookId, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
+    public void updateBookCatalogStatus(Long bookId, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
         CatalogChanged catalogChanged = new CatalogChanged();
         catalogChanged.setBookId(bookId);
         catalogChanged.setEventType(eventType);
         String message = objectMapper.writeValueAsString(catalogChanged);
-        RecordMetadata metadata = producer.send(new ProducerRecord<>(TOPIC_CATALOG, message)).get();
-        return new PublishResult(metadata.topic(), metadata.partition(), metadata.offset(), Instant.ofEpochMilli(metadata.timestamp()));
+        producer.send(new ProducerRecord<>(TOPIC_CATALOG, message)).get();
     }
 
     @PreDestroy
@@ -87,17 +82,5 @@ public class RentalProducer {
     }
 
 
-    private static class PublishResult {
-        public final String topic;
-        public final int partition;
-        public final long offset;
-        public final Instant timestamp;
 
-        private PublishResult(String topic, int partition, long offset, Instant timestamp) {
-            this.topic = topic;
-            this.partition = partition;
-            this.offset = offset;
-            this.timestamp = timestamp;
-        }
-    }
 }

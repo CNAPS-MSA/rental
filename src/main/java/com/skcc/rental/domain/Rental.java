@@ -220,12 +220,12 @@ public class Rental implements Serializable {
     /**
      * 대여불가 해제
      *
-     * @param lateFee
+     *
      * @return
      *
      * */
-    public Rental releaseOverdue(int lateFee) {
-        this.setLateFee(this.lateFee - lateFee);
+    public Rental releaseOverdue() {
+        this.setLateFee(0);
         this.setRentalStatus(RentalStatus.RENT_AVAILABLE);
         return this;
     }
