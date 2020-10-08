@@ -1,17 +1,12 @@
 package com.skcc.rental.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.skcc.rental.adaptor.RentalProducer;
-import com.skcc.rental.adaptor.UserClient;
+import com.skcc.rental.adaptor.RentalProducerService;
 import com.skcc.rental.domain.Rental;
-import com.skcc.rental.domain.RentedItem;
 import com.skcc.rental.domain.event.UserIdCreated;
-import com.skcc.rental.web.rest.dto.LatefeeDTO;
 import com.skcc.rental.web.rest.errors.RentUnavailableException;
 import com.skcc.rental.repository.RentalRepository;
 import com.skcc.rental.service.RentalService;
-import com.skcc.rental.web.rest.dto.BookInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -33,17 +28,13 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalRepository rentalRepository;
 
-    private final RentalProducer rentalProducer;
-
-    private final UserClient userClient;
+    private final RentalProducerService rentalProducerService;
 
     private int pointPerBooks = 30;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer, UserClient userClient) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducerService rentalProducerService) {
         this.rentalRepository = rentalRepository;
-        this.rentalProducer = rentalProducer;
-
-        this.userClient = userClient;
+        this.rentalProducerService = rentalProducerService;
     }
 
     /**
@@ -105,21 +96,22 @@ public class RentalServiceImpl implements RentalService {
      * 도서 대여하기
      *
      * @param userId
-     * @param book
+     * @param bookId
+     * @param bookTitle
      * @return
      */
     @Transactional
-    public Rental rentBook(Long userId, BookInfoDTO book) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
-        log.debug("Rent Books by : ", userId, " Book List : ", book);
+    public Rental rentBook(Long userId, Long bookId, String bookTitle) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException {
+        log.debug("Rent Books by : ", userId, " Book List : ", bookId + bookTitle);
         Rental rental = rentalRepository.findByUserId(userId).get();
         rental.checkRentalAvailable();
 
-        rental = rental.rentBook(book.getId(), book.getTitle());
+        rental = rental.rentBook(bookId, bookTitle);
         rentalRepository.save(rental);
 
-        updateBookStatus(book.getId(), "UNAVAILABLE"); //send to book service
-        updateBookCatalog(book.getId(), "RENT_BOOK"); //send to book catalog service
-        savePoints(userId); //send to user service
+        rentalProducerService.updateBookStatus(bookId, "UNAVAILABLE"); //send to book service
+        rentalProducerService.updateBookCatalogStatus(bookId, "RENT_BOOK"); //send to book catalog service
+        rentalProducerService.savePoints(userId, pointPerBooks); //send to user service
 
         return rental;
 
@@ -144,8 +136,8 @@ public class RentalServiceImpl implements RentalService {
         rental = rental.returnbook(bookId);
         rental = rentalRepository.save(rental);
 
-        updateBookStatus(bookId, "AVAILABLE");
-        updateBookCatalog(bookId, "RETURN_BOOK");
+        rentalProducerService.updateBookStatus(bookId, "AVAILABLE");
+        rentalProducerService.updateBookCatalogStatus(bookId, "RETURN_BOOK");
 
         return rental;
     }
@@ -179,8 +171,8 @@ public class RentalServiceImpl implements RentalService {
 
         rental = rental.returnOverdueBook(book);
 
-        updateBookStatus(book, "AVAILABLE");
-        updateBookCatalog(book, "RETURN_BOOK");
+        rentalProducerService.updateBookStatus(book, "AVAILABLE");
+        rentalProducerService.updateBookCatalogStatus(book, "RETURN_BOOK");
 
         return rentalRepository.save(rental);
     }
@@ -193,7 +185,7 @@ public class RentalServiceImpl implements RentalService {
     @Override
     public Rental releaseOverdue(Long userId) {
         Rental rental = rentalRepository.findByUserId(userId).get();
-        rental=rental.releaseOverdue(rental.getLateFee());
+        rental=rental.releaseOverdue();
         return rentalRepository.save(rental);
     }
 
@@ -207,20 +199,7 @@ public class RentalServiceImpl implements RentalService {
 
 
 
-    @Override
-    public void updateBookStatus(Long bookId, String bookStatus) throws ExecutionException, InterruptedException, JsonProcessingException {
-        rentalProducer.updateBookStatus(bookId, bookStatus);
-    }
 
-    @Override
-    public void savePoints(Long userId) throws ExecutionException, InterruptedException, JsonProcessingException {
-        rentalProducer.savePoints(userId, pointPerBooks);
-    }
-
-    @Override
-    public void updateBookCatalog(Long bookId, String eventType) throws InterruptedException, ExecutionException, JsonProcessingException {
-        rentalProducer.updateBookCatalogStatus(bookId, eventType);
-    }
 
 
 
