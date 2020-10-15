@@ -1,7 +1,7 @@
 package com.skcc.rental.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.skcc.rental.adaptor.RentalProducerService;
+import com.skcc.rental.adaptor.RentalProducer;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.event.UserIdCreated;
 import com.skcc.rental.web.rest.errors.RentUnavailableException;
@@ -28,13 +28,13 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalRepository rentalRepository;
 
-    private final RentalProducerService rentalProducerService;
+    private final RentalProducer rentalProducer;
 
     private int pointPerBooks = 30;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducerService rentalProducerService) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer) {
         this.rentalRepository = rentalRepository;
-        this.rentalProducerService = rentalProducerService;
+        this.rentalProducer = rentalProducer;
     }
 
     /**
@@ -109,9 +109,9 @@ public class RentalServiceImpl implements RentalService {
         rental = rental.rentBook(bookId, bookTitle);
         rentalRepository.save(rental);
 
-        rentalProducerService.updateBookStatus(bookId, "UNAVAILABLE"); //send to book service
-        rentalProducerService.updateBookCatalogStatus(bookId, "RENT_BOOK"); //send to book catalog service
-        rentalProducerService.savePoints(userId, pointPerBooks); //send to user service
+        rentalProducer.updateBookStatus(bookId, "UNAVAILABLE"); //send to book service
+        rentalProducer.updateBookCatalogStatus(bookId, "RENT_BOOK"); //send to book catalog service
+        rentalProducer.savePoints(userId, pointPerBooks); //send to user service
 
         return rental;
 
@@ -136,8 +136,8 @@ public class RentalServiceImpl implements RentalService {
         rental = rental.returnbook(bookId);
         rental = rentalRepository.save(rental);
 
-        rentalProducerService.updateBookStatus(bookId, "AVAILABLE");
-        rentalProducerService.updateBookCatalogStatus(bookId, "RETURN_BOOK");
+        rentalProducer.updateBookStatus(bookId, "AVAILABLE");
+        rentalProducer.updateBookCatalogStatus(bookId, "RETURN_BOOK");
 
         return rental;
     }
@@ -171,8 +171,8 @@ public class RentalServiceImpl implements RentalService {
 
         rental = rental.returnOverdueBook(book);
 
-        rentalProducerService.updateBookStatus(book, "AVAILABLE");
-        rentalProducerService.updateBookCatalogStatus(book, "RETURN_BOOK");
+        rentalProducer.updateBookStatus(book, "AVAILABLE");
+        rentalProducer.updateBookCatalogStatus(book, "RETURN_BOOK");
 
         return rentalRepository.save(rental);
     }
