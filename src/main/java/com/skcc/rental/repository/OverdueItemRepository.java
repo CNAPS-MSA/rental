@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 
-import java.net.http.HttpHeaders;
-
 /**
  * Spring Data  repository for the OverdueItem entity.
  */

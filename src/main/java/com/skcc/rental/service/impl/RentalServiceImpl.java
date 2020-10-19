@@ -35,15 +35,13 @@ public class RentalServiceImpl implements RentalService {
 
     private final RentalProducer rentalProducer;
 
-    private final UserClient userClient;
 
     private int pointPerBooks = 30;
 
-    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer, UserClient userClient) {
+    public RentalServiceImpl(RentalRepository rentalRepository, RentalProducer rentalProducer) {
         this.rentalRepository = rentalRepository;
         this.rentalProducer = rentalProducer;
 
-        this.userClient = userClient;
     }
 
     /**
