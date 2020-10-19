@@ -166,7 +166,7 @@ public class RentalResource {
         BookInfoDTO bookInfoDTO = bookInfoResult.getBody();
         log.debug("book info list", bookInfoDTO.toString());
 
-        Rental rental= rentalService.rentBook(userid, bookInfoDTO);
+        Rental rental= rentalService.rentBook(userid, bookInfoDTO.getId(), bookInfoDTO.getTitle());
         RentalDTO rentalDTO = rentalMapper.toDto(rental);
         return ResponseEntity.ok().body(rentalDTO);
 

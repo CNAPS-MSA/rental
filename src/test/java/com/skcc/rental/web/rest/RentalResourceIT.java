@@ -1,7 +1,7 @@
 package com.skcc.rental.web.rest;
 
 import com.skcc.rental.RentalApp;
-import com.skcc.rental.adaptor.RentalProducer;
+import com.skcc.rental.adaptor.RentalProducerImpl;
 import com.skcc.rental.domain.Rental;
 import com.skcc.rental.domain.enumeration.RentalStatus;
 import com.skcc.rental.repository.RentalRepository;
@@ -59,7 +59,7 @@ public class RentalResourceIT {
     private MockMvc restRentalMockMvc;
 
     @Autowired
-    private RentalProducer rentalProducer;
+    private RentalProducerImpl rentalProducerImpl;
 
     private Rental rental;
 
