@@ -95,7 +95,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     /**
-     * 도서 대여하기
+     * 도서 대출하기
      *
      * @param userId
      * @param bookId
@@ -182,7 +182,7 @@ public class RentalServiceImpl implements RentalService {
 
     /**
      * @param userId
-     * 대여불가 해제하기
+     * 대출불가 해제하기
      */
     @Override
     public Rental releaseOverdue(Long userId) {

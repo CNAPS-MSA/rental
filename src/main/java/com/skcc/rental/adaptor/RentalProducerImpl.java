@@ -66,7 +66,7 @@ public class RentalProducerImpl implements RentalProducer {
         producer.send(new ProducerRecord<>(TOPIC_POINT, message)).get();
     }
 
-    //대여, 반납  시 book catalog의 책 상태 업데이트
+    //대출, 반납  시 book catalog의 책 상태 업데이트
     public void updateBookCatalogStatus(Long bookId, String eventType) throws ExecutionException, InterruptedException,JsonProcessingException {
         CatalogChanged catalogChanged = new CatalogChanged();
         catalogChanged.setBookId(bookId);

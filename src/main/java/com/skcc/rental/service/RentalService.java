@@ -60,7 +60,7 @@ public interface RentalService {
      *
      * Business Logic
      *
-     * 책 대여하기
+     * 책 대출하기
      *
      * ****/
     Rental rentBook(Long userId, Long bookId, String bookTitle) throws InterruptedException, ExecutionException, JsonProcessingException, RentUnavailableException;

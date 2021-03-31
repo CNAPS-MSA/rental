@@ -138,9 +138,9 @@ public class Rental implements Serializable {
             ", lateFee=" + getLateFee() +
             "}";
     }
-    //최초 대여 시//
+    //최초 대출 시//
     /**
-     * 대여카드 생성
+     * 대출카드 생성
      *
      * @param userId
      * @return
@@ -148,14 +148,14 @@ public class Rental implements Serializable {
     public static Rental createRental(Long userId) {
         Rental rental = new Rental();
         rental.setUserId(userId);
-        //대여 가능하게 상태 변경
+        //대출 가능하게 상태 변경
         rental.setRentalStatus(RentalStatus.RENT_AVAILABLE);
         rental.setLateFee(0);
         return rental;
     }
 
     /**
-     * 대여 불가 처리
+     * 대출 불가 처리
      *
      * @return
      */
@@ -166,7 +166,7 @@ public class Rental implements Serializable {
     }
 
     /**
-     * 대여하기
+     * 대출하기
      *
      * @param bookid
      * @param title
@@ -218,7 +218,7 @@ public class Rental implements Serializable {
     }
 
     /**
-     * 대여불가 해제
+     * 대출불가 해제
      *
      *
      * @return
@@ -230,9 +230,9 @@ public class Rental implements Serializable {
         return this;
     }
 
-    //대여 가능 여부 체크 //
+    //대출 가능 여부 체크 //
     public void checkRentalAvailable() throws RentUnavailableException {
-        if(this.rentalStatus.equals(RentalStatus.RENT_UNAVAILABLE ) || this.getLateFee()!=0) throw new RentUnavailableException("연체 상태입니다. 연체료를 정산 후, 도서를 대여하실 수 있습니다.");
+        if(this.rentalStatus.equals(RentalStatus.RENT_UNAVAILABLE ) || this.getLateFee()!=0) throw new RentUnavailableException("연체 상태입니다. 연체료를 정산 후, 도서를 대출하실 수 있습니다.");
         if(this.getRentedItems().size()>=5) throw new RentUnavailableException("대출 가능한 도서의 수는 "+( 5- this.getRentedItems().size())+"권 입니다.");
 
     }

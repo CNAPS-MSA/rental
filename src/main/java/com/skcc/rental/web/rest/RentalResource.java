@@ -149,7 +149,7 @@ public class RentalResource {
 
 
     /**
-     * 도서 대여 하기
+     * 도서 대출 하기
      * @param userid
      * @param bookId
      * @return
@@ -219,7 +219,7 @@ public class RentalResource {
     }
 
     /**
-     * 대여불가 해제하기
+     * 대출불가 해제하기
      *
      * @param userId
      * @return
